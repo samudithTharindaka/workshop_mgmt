@@ -4,6 +4,8 @@ app_publisher = "Infoney"
 app_description = "Automotive workshop and garage management system"
 app_email = "info@infoney.com"
 app_license = "mit"
+app_color = "#FF6B35"
+app_icon = "octicon octicon-tools"
 
 # Apps
 # ------------------
@@ -26,7 +28,9 @@ app_license = "mit"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/workshop_mgmt/css/workshop_mgmt.css"
-# app_include_js = "/assets/workshop_mgmt/js/workshop_mgmt.js"
+app_include_js = [
+	"/assets/workshop_mgmt/js/workshop_mgmt.js"
+]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/workshop_mgmt/css/workshop_mgmt.css"
@@ -60,9 +64,12 @@ app_license = "mit"
 # home_page = "login"
 
 # website user home page (by Role)
-# role_home_page = {
-# 	"Role": "home_page"
-# }
+role_home_page = {
+	"System Manager": "garage-dashboard"
+}
+
+# Add garage dashboard link to desk
+on_session_creation = "workshop_mgmt.utils.on_session_creation"
 
 # Generators
 # ----------

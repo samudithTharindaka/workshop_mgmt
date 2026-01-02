@@ -1,0 +1,182 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:JOB-{YYYY}-{#####}",
+ "creation": "2025-01-02 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "customer",
+  "vehicle",
+  "column_break_1",
+  "appointment",
+  "posting_date",
+  "service_advisor",
+  "section_break_1",
+  "warehouse",
+  "status",
+  "column_break_2",
+  "quotation",
+  "sales_invoice",
+  "section_break_2",
+  "complaint_summary",
+  "odometer_in",
+  "section_break_3",
+  "service_items",
+  "section_break_4",
+  "part_items"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "vehicle",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Vehicle",
+   "options": "Vehicle",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "appointment",
+   "fieldtype": "Link",
+   "label": "Service Appointment",
+   "options": "Service Appointment"
+  },
+  {
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date",
+   "default": "Today",
+   "reqd": 1
+  },
+  {
+   "fieldname": "service_advisor",
+   "fieldtype": "Link",
+   "label": "Service Advisor",
+   "options": "User"
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break",
+   "label": "Status & Links"
+  },
+  {
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Warehouse",
+   "options": "Warehouse",
+   "reqd": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Draft\nChecked In\nInspected\nEstimated\nApproved\nIn Progress\nReady to Invoice\nInvoiced\nClosed\nCancelled",
+   "default": "Draft"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "quotation",
+   "fieldtype": "Link",
+   "label": "Quotation",
+   "options": "Quotation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "label": "Sales Invoice",
+   "options": "Sales Invoice",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break",
+   "label": "Job Details"
+  },
+  {
+   "fieldname": "complaint_summary",
+   "fieldtype": "Small Text",
+   "label": "Complaint Summary"
+  },
+  {
+   "fieldname": "odometer_in",
+   "fieldtype": "Int",
+   "label": "Odometer Reading"
+  },
+  {
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break",
+   "label": "Service Items"
+  },
+  {
+   "fieldname": "service_items",
+   "fieldtype": "Table",
+   "label": "Service Items",
+   "options": "Job Card Service Item"
+  },
+  {
+   "fieldname": "section_break_4",
+   "fieldtype": "Section Break",
+   "label": "Part Items"
+  },
+  {
+   "fieldname": "part_items",
+   "fieldtype": "Table",
+   "label": "Part Items",
+   "options": "Job Card Part Item"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 0,
+ "links": [],
+ "modified": "2025-01-02 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Workshop Management",
+ "name": "Job Card",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_views": 1
+}
+

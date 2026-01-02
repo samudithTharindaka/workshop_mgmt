@@ -1,0 +1,52 @@
+{
+ "actions": [],
+ "creation": "2025-01-02 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "check_item",
+  "result",
+  "notes",
+  "photo"
+ ],
+ "fields": [
+  {
+   "fieldname": "check_item",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Check Item",
+   "reqd": 1
+  },
+  {
+   "fieldname": "result",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Result",
+   "options": "OK\nAttention\nCritical",
+   "reqd": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "photo",
+   "fieldtype": "Attach Image",
+   "label": "Photo"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-01-02 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Workshop Management",
+ "name": "Inspection Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
+
