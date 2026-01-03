@@ -249,3 +249,19 @@ on_session_creation = "workshop_mgmt.utils.on_session_creation"
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
+# Fixtures
+# --------
+fixtures = [
+	{
+		"doctype": "Custom Field",
+		"filters": [
+			[
+				"name",
+				"in",
+				[
+					"Sales Invoice-custom_job_card"
+				]
+			]
+		]
+	}
+]

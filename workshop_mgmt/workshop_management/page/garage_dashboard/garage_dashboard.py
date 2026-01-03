@@ -8,6 +8,14 @@ from frappe import _
 @frappe.whitelist()
 def get_dashboard_data(filters=None):
 	"""Get comprehensive dashboard data for garage management"""
+	# #region agent log
+	import os, json
+	try:
+		with open('/home/samudith/.cursor/debug.log', 'a') as f:
+			f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"C","location":"garage_dashboard.py:get_dashboard_data:entry","message":"Dashboard data requested","data":{"filters_raw":filters},"timestamp":frappe.utils.now()}) + "\n")
+	except: pass
+	# #endregion
+	
 	if isinstance(filters, str):
 		import json
 		filters = json.loads(filters)
@@ -30,6 +38,14 @@ def get_dashboard_data(filters=None):
 
 def get_kpis(company=None):
 	"""Get key performance indicators"""
+	# #region agent log
+	import os, json
+	try:
+		with open('/home/samudith/.cursor/debug.log', 'a') as f:
+			f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A","location":"garage_dashboard.py:get_kpis:entry","message":"get_kpis called","data":{"company":company},"timestamp":frappe.utils.now()}) + "\n")
+	except: pass
+	# #endregion
+	
 	filters = {"company": company} if company else {}
 	
 	# Jobs in progress
@@ -45,13 +61,36 @@ def get_kpis(company=None):
 		"sales_invoice": ["is", "not set"]
 	})
 	
-	# Today's revenue
+	# #region agent log
+	try:
+		# Check if custom field exists (Hypothesis A & B)
+		custom_fields = frappe.get_all("Custom Field", 
+			filters={"dt": "Sales Invoice", "fieldname": ["like", "%job_card%"]},
+			fields=["name", "fieldname", "label"])
+		
+		# Check actual table columns (Hypothesis D)
+		columns = frappe.db.sql("SHOW COLUMNS FROM `tabSales Invoice` LIKE '%job_card%'", as_dict=True)
+		
+		with open('/home/samudith/.cursor/debug.log', 'a') as f:
+			f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A,B,D","location":"garage_dashboard.py:get_kpis:custom_field_check","message":"Custom field check","data":{"custom_fields":custom_fields,"table_columns":columns},"timestamp":frappe.utils.now()}) + "\n")
+	except Exception as e:
+		with open('/home/samudith/.cursor/debug.log', 'a') as f:
+			f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"A,B,D","location":"garage_dashboard.py:get_kpis:custom_field_check_error","message":"Error checking custom field","data":{"error":str(e)},"timestamp":frappe.utils.now()}) + "\n")
+	# #endregion
+	
+	# Today's revenue - REMOVED custom_job_card check temporarily for testing
+	# #region agent log
+	try:
+		with open('/home/samudith/.cursor/debug.log', 'a') as f:
+			f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"E","location":"garage_dashboard.py:get_kpis:before_revenue_query","message":"About to query revenue WITHOUT custom_job_card filter","data":{"company":company},"timestamp":frappe.utils.now()}) + "\n")
+	except: pass
+	# #endregion
+	
 	today_revenue = frappe.db.sql("""
 		SELECT COALESCE(SUM(si.grand_total), 0) as revenue
 		FROM `tabSales Invoice` si
 		WHERE si.docstatus = 1
 		AND si.posting_date = CURDATE()
-		AND si.custom_job_card IS NOT NULL
 		{company_condition}
 	""".format(
 		company_condition=f"AND si.company = '{company}'" if company else ""
@@ -110,6 +149,13 @@ def get_revenue_chart_data(company=None, days=30):
 	"""Get daily revenue for the last N days"""
 	company_condition = f"AND si.company = '{company}'" if company else ""
 	
+	# #region agent log
+	try:
+		with open('/home/samudith/.cursor/debug.log', 'a') as f:
+			f.write(json.dumps({"sessionId":"debug-session","runId":"run1","hypothesisId":"E","location":"garage_dashboard.py:get_revenue_chart_data:entry","message":"Revenue chart query WITHOUT custom_job_card filter","data":{"company":company,"days":days},"timestamp":frappe.utils.now()}) + "\n")
+	except: pass
+	# #endregion
+	
 	data = frappe.db.sql("""
 		SELECT 
 			si.posting_date as date,
@@ -117,7 +163,6 @@ def get_revenue_chart_data(company=None, days=30):
 			COUNT(si.name) as invoice_count
 		FROM `tabSales Invoice` si
 		WHERE si.docstatus = 1
-		AND si.custom_job_card IS NOT NULL
 		AND si.posting_date >= DATE_SUB(CURDATE(), INTERVAL {days} DAY)
 		{company_condition}
 		GROUP BY si.posting_date
