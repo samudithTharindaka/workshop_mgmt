@@ -102,3 +102,5 @@ def get_conditions(filters):
 	
 	return " ".join(conditions)
 
+
+

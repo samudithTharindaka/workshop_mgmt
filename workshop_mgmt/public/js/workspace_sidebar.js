@@ -103,3 +103,5 @@ if (frappe.search && frappe.search.utils) {
 	});
 }
 
+
+

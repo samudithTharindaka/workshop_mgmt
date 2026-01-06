@@ -6,9 +6,11 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "job_card",
+  "appointment",
+  "customer",
   "vehicle",
   "column_break_1",
+  "job_card",
   "inspection_date",
   "inspector",
   "section_break_1",
@@ -16,29 +18,46 @@
  ],
  "fields": [
   {
-   "fieldname": "job_card",
+   "fieldname": "appointment",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Job Card",
-   "options": "Job Card",
-   "reqd": 1
+   "label": "Service Appointment",
+   "options": "Service Appointment"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "fetch_from": "appointment.customer",
+   "fetch_if_empty": 1
   },
   {
    "fieldname": "vehicle",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Vehicle",
    "options": "Vehicle",
-   "read_only": 1
+   "fetch_from": "appointment.vehicle",
+   "fetch_if_empty": 1
   },
   {
    "fieldname": "column_break_1",
    "fieldtype": "Column Break"
   },
   {
+   "fieldname": "job_card",
+   "fieldtype": "Link",
+   "label": "Job Card",
+   "options": "Job Card"
+  },
+  {
    "fieldname": "inspection_date",
    "fieldtype": "Date",
    "label": "Inspection Date",
-   "default": "Today"
+   "default": "Today",
+   "reqd": 1
   },
   {
    "fieldname": "inspector",
@@ -61,7 +80,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 0,
  "links": [],
- "modified": "2025-01-02 12:00:00.000000",
+ "modified": "2025-01-06 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Workshop Management",
  "name": "Vehicle Inspection",
@@ -83,6 +102,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }
-

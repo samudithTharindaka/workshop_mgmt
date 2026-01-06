@@ -19,3 +19,5 @@ def get_dashboard_link():
 		"description": "Workshop management dashboard with real-time KPIs"
 	}
 
+
+

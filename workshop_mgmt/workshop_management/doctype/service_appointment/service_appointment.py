@@ -25,3 +25,5 @@ class ServiceAppointment(Document):
 					self.vehicle, self.customer
 				))
 
+
+

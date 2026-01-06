@@ -4,7 +4,7 @@
 frappe.provide("workshop_mgmt");
 
 // Add Garage Dashboard to awesome bar and quick access
-frappe.ready(function() {
+$(document).ready(function() {
 	// Add dashboard to search (awesome bar)
 	if (frappe.search && frappe.search.utils) {
 		frappe.search.utils.add_custom_result({
@@ -44,4 +44,6 @@ if (frappe.ui && frappe.ui.toolbar && frappe.ui.toolbar.search) {
 		};
 	})(frappe.ui.toolbar.search.on_search_trigger || function(){});
 }
+
+
 

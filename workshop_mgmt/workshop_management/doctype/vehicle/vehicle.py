@@ -22,3 +22,5 @@ class Vehicle(Document):
 			if existing:
 				frappe.throw(frappe._("License Plate {0} already exists for another vehicle").format(self.license_plate))
 
+
+

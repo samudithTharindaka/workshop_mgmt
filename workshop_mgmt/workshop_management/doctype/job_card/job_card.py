@@ -12,6 +12,47 @@ class JobCard(Document):
 		self.validate_vehicle_customer_match()
 		self.validate_duplicate_invoice()
 		self.calculate_amounts()
+		self.fetch_from_appointment()
+	
+	def after_insert(self):
+		"""Link job card back to the appointment"""
+		self.update_appointment_link()
+	
+	def on_update(self):
+		"""Update appointment link when job card is modified"""
+		self.update_appointment_link()
+	
+	def fetch_from_appointment(self):
+		"""Fetch customer and vehicle from appointment if set"""
+		if self.appointment:
+			appointment = frappe.db.get_value("Service Appointment", self.appointment,
+				["customer", "vehicle", "service_advisor"], as_dict=True)
+			if appointment:
+				if not self.customer:
+					self.customer = appointment.customer
+				if not self.vehicle:
+					self.vehicle = appointment.vehicle
+				if not self.service_advisor and appointment.service_advisor:
+					self.service_advisor = appointment.service_advisor
+	
+	def update_appointment_link(self):
+		"""Update the job_card field in the linked Service Appointment"""
+		if self.appointment:
+			# Check if appointment doesn't already have this job card linked
+			current_job_card = frappe.db.get_value("Service Appointment", 
+				self.appointment, "job_card")
+			if current_job_card != self.name:
+				frappe.db.set_value("Service Appointment", self.appointment, 
+					"job_card", self.name, update_modified=False)
+				# Also update appointment status to In Progress
+				frappe.db.set_value("Service Appointment", self.appointment,
+					"status", "In Progress", update_modified=False)
+	
+	def on_trash(self):
+		"""Clear job card link from appointment when deleted"""
+		if self.appointment:
+			frappe.db.set_value("Service Appointment", self.appointment, 
+				"job_card", None, update_modified=False)
 	
 	def validate_vehicle_customer_match(self):
 		"""Ensure vehicle belongs to the customer"""
@@ -86,51 +127,65 @@ class JobCard(Document):
 		if self.sales_invoice:
 			frappe.throw(_("Sales Invoice {0} already exists for this Job Card").format(self.sales_invoice))
 		
+		# Validate items exist
+		if not self.service_items and not self.part_items:
+			frappe.throw(_("Please add at least one service or part item before creating invoice"))
+		
 		# Validate stock availability for parts
 		self.validate_stock_availability()
 		
-		# Create Sales Invoice
-		invoice = frappe.new_doc("Sales Invoice")
-		invoice.customer = self.customer
-		invoice.company = self.company
-		invoice.posting_date = self.posting_date
-		invoice.set_warehouse = self.warehouse
-		invoice.update_stock = 1
-		invoice.custom_job_card = self.name  # Custom field link
-		
-		# Add service items
-		for service_item in self.service_items:
-			invoice.append("items", {
-				"item_code": service_item.item_code,
-				"qty": service_item.qty,
-				"rate": service_item.rate,
-				"warehouse": self.warehouse
-			})
-		
-		# Add part items
-		for part_item in self.part_items:
-			warehouse = part_item.warehouse or self.warehouse
-			invoice.append("items", {
-				"item_code": part_item.item_code,
-				"qty": part_item.qty,
-				"rate": part_item.rate,
-				"warehouse": warehouse
-			})
-		
-		# Calculate taxes and totals
-		invoice.calculate_taxes_and_totals()
-		invoice.insert()
-		
-		# Update job card
-		self.sales_invoice = invoice.name
-		self.status = "Invoiced"
-		self.save()
-		
-		frappe.msgprint(_("Sales Invoice {0} created successfully").format(invoice.name))
-		return invoice.name
+		try:
+			# Create Sales Invoice
+			invoice = frappe.new_doc("Sales Invoice")
+			invoice.customer = self.customer
+			invoice.company = self.company
+			invoice.posting_date = self.posting_date
+			invoice.set_warehouse = self.warehouse
+			invoice.update_stock = 1
+			invoice.custom_job_card = self.name  # Custom field link
+			
+			# Add service items
+			for service_item in self.service_items:
+				invoice.append("items", {
+					"item_code": service_item.item_code,
+					"qty": service_item.qty,
+					"rate": service_item.rate,
+					"warehouse": self.warehouse
+				})
+			
+			# Add part items
+			for part_item in self.part_items:
+				warehouse = part_item.warehouse or self.warehouse
+				invoice.append("items", {
+					"item_code": part_item.item_code,
+					"qty": part_item.qty,
+					"rate": part_item.rate,
+					"warehouse": warehouse
+				})
+			
+			# Calculate taxes and totals
+			invoice.calculate_taxes_and_totals()
+			invoice.insert()
+			
+			# Update job card status to Invoiced and link the invoice
+			self.db_set("sales_invoice", invoice.name)
+			self.db_set("status", "Invoiced")
+			self.reload()
+			
+			# Add comment to track the change
+			self.add_comment("Comment", _("Sales Invoice {0} created and Job Card status changed to Invoiced").format(invoice.name))
+			
+			frappe.msgprint(_("Sales Invoice {0} created successfully and Job Card status updated to Invoiced").format(invoice.name))
+			return invoice.name
+			
+		except Exception as e:
+			frappe.log_error(frappe.get_traceback(), _("Job Card Invoice Creation Error"))
+			frappe.throw(_("Error creating Sales Invoice: {0}").format(str(e)))
 	
 	def validate_stock_availability(self):
 		"""Check if sufficient stock exists for all part items"""
+		insufficient_items = []
+		
 		for part_item in self.part_items:
 			warehouse = part_item.warehouse or self.warehouse
 			
@@ -142,9 +197,18 @@ class JobCard(Document):
 			) or 0
 			
 			if available_qty < part_item.qty:
-				frappe.throw(
-					_("Insufficient stock for item {0}. Available: {1}, Required: {2}").format(
-						part_item.item_code, available_qty, part_item.qty
-					)
-				)
+				insufficient_items.append({
+					"item": part_item.item_code,
+					"warehouse": warehouse,
+					"available": available_qty,
+					"required": part_item.qty
+				})
+		
+		if insufficient_items:
+			error_msg = _("Insufficient stock for the following items:") + "<br><br>"
+			for item in insufficient_items:
+				error_msg += _("• Item: {0} | Warehouse: {1} | Available: {2} | Required: {3}").format(
+					item["item"], item["warehouse"], item["available"], item["required"]
+				) + "<br>"
+			frappe.throw(error_msg, title=_("Stock Not Available"))
 
