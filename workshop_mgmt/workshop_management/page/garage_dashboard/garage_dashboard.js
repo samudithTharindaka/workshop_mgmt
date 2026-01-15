@@ -55,21 +55,11 @@ class GarageDashboard {
 	}
 	
 	setup_filters() {
-		this.page.set_primary_action(__('New Job Card'), () => {
-			frappe.new_doc('Job Card');
-		}, 'add');
-		
-		this.page.add_action_icon('octicon octicon-calendar', () => {
-			frappe.new_doc('Service Appointment');
-		}, __('New Appointment'));
-		
-		this.page.add_action_icon('octicon octicon-repo', () => {
-			frappe.new_doc('Vehicle');
-		}, __('New Vehicle'));
-		
 		this.page.add_button(__('Refresh'), () => {
 			this.load_dashboard_data('refresh_button');
-			this.load_tab_content(this.active_tab);
+			if (this.active_tab !== 'dashboard') {
+				this.load_tab_content(this.active_tab);
+			}
 		}, {icon: 'refresh'});
 		
 		this.page.add_field({
@@ -293,6 +283,64 @@ class GarageDashboard {
 					.kpi-card.orange .kpi-value { color: #ff9800; }
 					.kpi-card.purple { border-left: 4px solid #9c27b0; }
 					.kpi-card.purple .kpi-value { color: #9c27b0; }
+					.kpi-subtext {
+						font-size: 11px;
+						color: var(--text-muted);
+						margin-top: 5px;
+						font-weight: normal;
+					}
+					.summary-section {
+						margin-top: 30px;
+						margin-bottom: 20px;
+					}
+					.summary-section-title {
+						font-size: 18px;
+						font-weight: 600;
+						color: var(--heading-color);
+						margin-bottom: 15px;
+						display: flex;
+						align-items: center;
+						gap: 8px;
+					}
+					.summary-card {
+						min-height: 200px;
+					}
+					.summary-item {
+						display: flex;
+						justify-content: space-between;
+						align-items: center;
+						padding: 8px 0;
+						border-bottom: 1px solid var(--border-color);
+					}
+					.summary-item:last-child {
+						border-bottom: none;
+					}
+					.summary-item-label {
+						font-size: 13px;
+						color: var(--text-color);
+						display: flex;
+						align-items: center;
+						gap: 8px;
+					}
+					.summary-item-value {
+						font-size: 14px;
+						font-weight: 600;
+						color: var(--text-color);
+					}
+					.summary-item-value.positive {
+						color: #4caf50;
+					}
+					.summary-item-value.negative {
+						color: #f44336;
+					}
+					.summary-item-value.neutral {
+						color: var(--text-muted);
+					}
+					.summary-period {
+						font-size: 11px;
+						color: var(--text-muted);
+						margin-top: 2px;
+					}
 					.dashboard-row {
 						display: grid;
 						grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -444,9 +492,10 @@ class GarageDashboard {
 						<p>Manage workshop operations, track jobs, and monitor performance</p>
 					</div>
 					<div class="quick-actions-buttons">
-						<button class="quick-action-btn" onclick="frappe.new_doc('Job Card')"><i class="fa fa-plus"></i> New Job</button>
+						<button class="quick-action-btn" onclick="frappe.new_doc('Customer')"><i class="fa fa-user"></i> Customer</button>
+						<button class="quick-action-btn" onclick="frappe.new_doc('Vehicle')"><i class="fa fa-car"></i> Vehicle</button>
 						<button class="quick-action-btn" onclick="frappe.new_doc('Service Appointment')"><i class="fa fa-calendar"></i> Appointment</button>
-						<button class="quick-action-btn" onclick="frappe.new_doc('Vehicle Inspection')"><i class="fa fa-search"></i> Inspection</button>
+						<button class="quick-action-btn" onclick="frappe.new_doc('Job Card')"><i class="fa fa-wrench"></i> Job Card</button>
 					</div>
 				</div>
 				
@@ -454,40 +503,79 @@ class GarageDashboard {
 					<div class="kpi-card blue">
 						<div class="kpi-label">Jobs In Progress</div>
 						<div class="kpi-value" id="kpi-in-progress">-</div>
+						<div class="kpi-subtext" id="kpi-in-progress-detail">-</div>
 					</div>
 					<div class="kpi-card orange">
 						<div class="kpi-label">Ready to Invoice</div>
 						<div class="kpi-value" id="kpi-ready-invoice">-</div>
+						<div class="kpi-subtext" id="kpi-ready-invoice-detail">-</div>
 					</div>
 					<div class="kpi-card green">
 						<div class="kpi-label">Today's Revenue</div>
 						<div class="kpi-value" id="kpi-revenue">-</div>
+						<div class="kpi-subtext" id="kpi-revenue-detail">-</div>
 					</div>
 					<div class="kpi-card purple">
 						<div class="kpi-label">Vehicles This Month</div>
 						<div class="kpi-value" id="kpi-vehicles">-</div>
+						<div class="kpi-subtext" id="kpi-vehicles-detail">-</div>
 					</div>
 				</div>
 				
 				<div class="dashboard-row">
 					<div class="dashboard-card">
-						<h4>Revenue Trend (30 Days)</h4>
-						<div class="chart-container" id="revenue-chart"></div>
+						<div class="dashboard-card-header">
+							<h4><i class="fa fa-check-circle"></i> Recently Closed Jobs</h4>
+							<a class="view-all-link" onclick="frappe.set_route('List', 'Job Card')">View All</a>
+						</div>
+						<div id="recently-closed-jobs-list" style="max-height: 300px; overflow-y: auto;"><div class="empty-state">Loading...</div></div>
 					</div>
 					<div class="dashboard-card">
-						<h4>Job Status Distribution</h4>
-						<div class="chart-container" id="status-chart"></div>
+						<div class="dashboard-card-header">
+							<h4><i class="fa fa-calendar"></i> Today's Appointments</h4>
+							<a class="view-all-link" onclick="frappe.set_route('List', 'Service Appointment')">View All</a>
+						</div>
+						<div id="today-appointments-list" style="max-height: 300px; overflow-y: auto;"><div class="empty-state">Loading...</div></div>
 					</div>
 				</div>
 				
 				<div class="dashboard-row">
 					<div class="dashboard-card">
-						<h4>Top Services</h4>
-						<div id="top-services-list"></div>
+						<div class="dashboard-card-header">
+							<h4><i class="fa fa-exclamation-circle"></i> Pending Inspections</h4>
+							<a class="view-all-link" onclick="frappe.set_route('List', 'Vehicle Inspection')">View All</a>
+						</div>
+						<div id="pending-inspections-list" style="max-height: 300px; overflow-y: auto;"><div class="empty-state">Loading...</div></div>
 					</div>
 					<div class="dashboard-card">
-						<h4>Top Parts</h4>
-						<div id="top-parts-list"></div>
+						<div class="dashboard-card-header">
+							<h4><i class="fa fa-file-text"></i> Jobs Ready to Invoice</h4>
+							<a class="view-all-link" onclick="frappe.set_route('List', 'Job Card')">View All</a>
+						</div>
+						<div id="jobs-ready-invoice-list" style="max-height: 300px; overflow-y: auto;"><div class="empty-state">Loading...</div></div>
+					</div>
+				</div>
+				
+				<div class="dashboard-row">
+					<div class="dashboard-card">
+						<h4><i class="fa fa-bar-chart"></i> Daily Jobs Count (30 Days)</h4>
+						<div class="chart-container" id="daily-jobs-chart"><div class="empty-state">Loading...</div></div>
+					</div>
+					<div class="dashboard-card">
+						<div class="dashboard-card-header">
+							<h4><i class="fa fa-calendar-check-o"></i> Today's Completed Tasks</h4>
+						</div>
+						<div id="today-completed-tasks" style="padding: 15px;"><div class="empty-state">Loading...</div></div>
+					</div>
+				</div>
+				
+				<div class="dashboard-row">
+					<div class="dashboard-card">
+						<div class="dashboard-card-header">
+							<h4><i class="fa fa-calendar"></i> Upcoming Appointments</h4>
+							<a class="view-all-link" onclick="frappe.set_route('List', 'Service Appointment')">View All</a>
+						</div>
+						<div id="upcoming-appointments-list" style="max-height: 400px; overflow-y: auto;"><div class="empty-state">Loading...</div></div>
 					</div>
 				</div>
 			</div>
@@ -507,6 +595,37 @@ class GarageDashboard {
 					</div>
 				</div>
 				
+				<div class="dashboard-card" style="margin-bottom: 15px;">
+					<div class="dashboard-card-header">
+						<h4><i class="fa fa-filter"></i> Filters</h4>
+					</div>
+					<div style="display: flex; gap: 15px; flex-wrap: wrap; padding: 10px 0;">
+						<div>
+							<label style="font-size: 12px; color: var(--text-muted); margin-right: 5px;">Status:</label>
+							<select id="jobs-status-filter" class="form-control" style="width: 150px; display: inline-block;">
+								<option value="">All Status</option>
+								<option value="Draft">Draft</option>
+								<option value="Checked In">Checked In</option>
+								<option value="Inspected">Inspected</option>
+								<option value="Estimated">Estimated</option>
+								<option value="Approved">Approved</option>
+								<option value="In Progress">In Progress</option>
+								<option value="Ready to Invoice">Ready to Invoice</option>
+								<option value="Invoiced">Invoiced</option>
+								<option value="Closed">Closed</option>
+							</select>
+						</div>
+						<div>
+							<label style="font-size: 12px; color: var(--text-muted); margin-right: 5px;">Date Range:</label>
+							<input type="date" id="jobs-date-from" class="form-control" style="width: 130px; display: inline-block; margin-right: 5px;">
+							<input type="date" id="jobs-date-to" class="form-control" style="width: 130px; display: inline-block;">
+						</div>
+						<button class="btn btn-sm btn-primary" onclick="window._garageDashboardInstance.apply_jobs_filters()" style="margin-left: auto;">
+							<i class="fa fa-search"></i> Apply Filters
+						</button>
+					</div>
+				</div>
+				
 				<div class="dashboard-card">
 					<div class="dashboard-card-header">
 						<h4><i class="fa fa-wrench"></i> Jobs</h4>
@@ -516,6 +635,7 @@ class GarageDashboard {
 				</div>
 			</div>
 		`);
+		this.jobs_filters = { status: '', date_from: '', date_to: '' };
 	}
 	
 	render_appointments_layout() {
@@ -531,6 +651,33 @@ class GarageDashboard {
 					</div>
 				</div>
 				
+				<div class="dashboard-card" style="margin-bottom: 15px;">
+					<div class="dashboard-card-header">
+						<h4><i class="fa fa-filter"></i> Filters</h4>
+					</div>
+					<div style="display: flex; gap: 15px; flex-wrap: wrap; padding: 10px 0;">
+						<div>
+							<label style="font-size: 12px; color: var(--text-muted); margin-right: 5px;">Status:</label>
+							<select id="appointments-status-filter" class="form-control" style="width: 150px; display: inline-block;">
+								<option value="">All Status</option>
+								<option value="Scheduled">Scheduled</option>
+								<option value="Checked-In">Checked-In</option>
+								<option value="Completed">Completed</option>
+								<option value="Cancelled">Cancelled</option>
+								<option value="No-Show">No-Show</option>
+							</select>
+						</div>
+						<div>
+							<label style="font-size: 12px; color: var(--text-muted); margin-right: 5px;">Date Range:</label>
+							<input type="date" id="appointments-date-from" class="form-control" style="width: 130px; display: inline-block; margin-right: 5px;">
+							<input type="date" id="appointments-date-to" class="form-control" style="width: 130px; display: inline-block;">
+						</div>
+						<button class="btn btn-sm btn-primary" onclick="window._garageDashboardInstance.apply_appointments_filters()" style="margin-left: auto;">
+							<i class="fa fa-search"></i> Apply Filters
+						</button>
+					</div>
+				</div>
+				
 				<div class="dashboard-card">
 					<div class="dashboard-card-header">
 						<h4><i class="fa fa-calendar"></i> Appointments</h4>
@@ -540,6 +687,7 @@ class GarageDashboard {
 				</div>
 			</div>
 		`);
+		this.appointments_filters = { status: '', date_from: '', date_to: '' };
 	}
 	
 	render_inspections_layout() {
@@ -555,6 +703,30 @@ class GarageDashboard {
 					</div>
 				</div>
 				
+				<div class="dashboard-card" style="margin-bottom: 15px;">
+					<div class="dashboard-card-header">
+						<h4><i class="fa fa-filter"></i> Filters</h4>
+					</div>
+					<div style="display: flex; gap: 15px; flex-wrap: wrap; padding: 10px 0;">
+						<div>
+							<label style="font-size: 12px; color: var(--text-muted); margin-right: 5px;">Has Job Card:</label>
+							<select id="inspections-jobcard-filter" class="form-control" style="width: 150px; display: inline-block;">
+								<option value="">All</option>
+								<option value="yes">Yes</option>
+								<option value="no">No</option>
+							</select>
+						</div>
+						<div>
+							<label style="font-size: 12px; color: var(--text-muted); margin-right: 5px;">Date Range:</label>
+							<input type="date" id="inspections-date-from" class="form-control" style="width: 130px; display: inline-block; margin-right: 5px;">
+							<input type="date" id="inspections-date-to" class="form-control" style="width: 130px; display: inline-block;">
+						</div>
+						<button class="btn btn-sm btn-primary" onclick="window._garageDashboardInstance.apply_inspections_filters()" style="margin-left: auto;">
+							<i class="fa fa-search"></i> Apply Filters
+						</button>
+					</div>
+				</div>
+				
 				<div class="dashboard-card">
 					<div class="dashboard-card-header">
 						<h4><i class="fa fa-search"></i> Inspections</h4>
@@ -564,6 +736,7 @@ class GarageDashboard {
 				</div>
 			</div>
 		`);
+		this.inspections_filters = { has_jobcard: '', date_from: '', date_to: '' };
 	}
 	
 	render_sales_layout() {
@@ -579,6 +752,33 @@ class GarageDashboard {
 					</div>
 				</div>
 				
+				<div class="dashboard-card" style="margin-bottom: 15px;">
+					<div class="dashboard-card-header">
+						<h4><i class="fa fa-filter"></i> Filters</h4>
+					</div>
+					<div style="display: flex; gap: 15px; flex-wrap: wrap; padding: 10px 0;">
+						<div>
+							<label style="font-size: 12px; color: var(--text-muted); margin-right: 5px;">Status:</label>
+							<select id="sales-status-filter" class="form-control" style="width: 150px; display: inline-block;">
+								<option value="">All Status</option>
+								<option value="Draft">Draft</option>
+								<option value="Submitted">Submitted</option>
+								<option value="Paid">Paid</option>
+								<option value="Unpaid">Unpaid</option>
+								<option value="Cancelled">Cancelled</option>
+							</select>
+						</div>
+						<div>
+							<label style="font-size: 12px; color: var(--text-muted); margin-right: 5px;">Date Range:</label>
+							<input type="date" id="sales-date-from" class="form-control" style="width: 130px; display: inline-block; margin-right: 5px;">
+							<input type="date" id="sales-date-to" class="form-control" style="width: 130px; display: inline-block;">
+						</div>
+						<button class="btn btn-sm btn-primary" onclick="window._garageDashboardInstance.apply_sales_filters()" style="margin-left: auto;">
+							<i class="fa fa-search"></i> Apply Filters
+						</button>
+					</div>
+				</div>
+				
 				<div class="dashboard-card">
 					<div class="dashboard-card-header">
 						<h4><i class="fa fa-money"></i> Sales</h4>
@@ -588,6 +788,7 @@ class GarageDashboard {
 				</div>
 			</div>
 		`);
+		this.sales_filters = { status: '', date_from: '', date_to: '' };
 	}
 	
 	
@@ -599,12 +800,22 @@ class GarageDashboard {
 		
 		frappe.call({
 			method: 'workshop_mgmt.workshop_management.page.garage_dashboard.garage_dashboard.get_dashboard_data',
-			args: { filters: { company: this.company } },
+			args: { filters: JSON.stringify({ company: this.company }) },
 			callback: (r) => {
 				if (showProgress) frappe.hide_progress();
-				if (r.message) this.render_dashboard(r.message);
+				if (r.message) {
+					// Use setTimeout to ensure DOM elements exist
+					setTimeout(() => {
+						this.render_dashboard(r.message);
+					}, 100);
+				} else {
+					console.error('No data received from get_dashboard_data');
+				}
 			},
-			error: () => { if (showProgress) frappe.hide_progress(); }
+			error: (r) => {
+				if (showProgress) frappe.hide_progress();
+				console.error('Error loading dashboard data:', r);
+			}
 		});
 	}
 	
@@ -612,10 +823,22 @@ class GarageDashboard {
 		const contentId = tab + '-content';
 		$('#' + contentId).html('<div class="empty-state">Loading...</div>');
 		
+		// Get filters for the current tab
+		let filters = { company: this.company };
+		if (tab === 'jobs' && this.jobs_filters) {
+			filters = { ...filters, ...this.jobs_filters };
+		} else if (tab === 'appointments' && this.appointments_filters) {
+			filters = { ...filters, ...this.appointments_filters };
+		} else if (tab === 'inspections' && this.inspections_filters) {
+			filters = { ...filters, ...this.inspections_filters };
+		} else if (tab === 'sales' && this.sales_filters) {
+			filters = { ...filters, ...this.sales_filters };
+		}
+		
 		frappe.call({
 			method: 'workshop_mgmt.workshop_management.page.garage_dashboard.garage_dashboard.get_sidebar_data',
 			args: {
-				filters: { company: this.company },
+				filters: filters,
 				tab: tab
 			},
 			callback: (r) => {
@@ -624,6 +847,42 @@ class GarageDashboard {
 				}
 			}
 		});
+	}
+	
+	apply_jobs_filters() {
+		this.jobs_filters = {
+			status: $('#jobs-status-filter').val() || '',
+			date_from: $('#jobs-date-from').val() || '',
+			date_to: $('#jobs-date-to').val() || ''
+		};
+		this.load_tab_content('jobs');
+	}
+	
+	apply_appointments_filters() {
+		this.appointments_filters = {
+			status: $('#appointments-status-filter').val() || '',
+			date_from: $('#appointments-date-from').val() || '',
+			date_to: $('#appointments-date-to').val() || ''
+		};
+		this.load_tab_content('appointments');
+	}
+	
+	apply_inspections_filters() {
+		this.inspections_filters = {
+			has_jobcard: $('#inspections-jobcard-filter').val() || '',
+			date_from: $('#inspections-date-from').val() || '',
+			date_to: $('#inspections-date-to').val() || ''
+		};
+		this.load_tab_content('inspections');
+	}
+	
+	apply_sales_filters() {
+		this.sales_filters = {
+			status: $('#sales-status-filter').val() || '',
+			date_from: $('#sales-date-from').val() || '',
+			date_to: $('#sales-date-to').val() || ''
+		};
+		this.load_tab_content('sales');
 	}
 	
 	render_tab_content(tab, data) {
@@ -656,13 +915,6 @@ class GarageDashboard {
 		if (data.pending && data.pending.length > 0) {
 			html += '<div class="section-header">Pending Invoice (' + data.counts.pending + ')</div>';
 			data.pending.forEach(job => {
-				html += this.render_job_list_item(job);
-			});
-		}
-		
-		if (data.completed && data.completed.length > 0) {
-			html += '<div class="section-header">Recently Completed (' + data.counts.completed + ')</div>';
-			data.completed.slice(0, 10).forEach(job => {
 				html += this.render_job_list_item(job);
 			});
 		}
@@ -720,13 +972,6 @@ class GarageDashboard {
 		if (data.today && data.today.length > 0) {
 			html += '<div class="section-header">Today (' + data.counts.today + ')</div>';
 			data.today.forEach(ins => {
-				html += this.render_inspection_list_item(ins);
-			});
-		}
-		
-		if (data.recent && data.recent.length > 0) {
-			html += '<div class="section-header">Recent (' + data.counts.recent + ')</div>';
-			data.recent.slice(0, 20).forEach(ins => {
 				html += this.render_inspection_list_item(ins);
 			});
 		}
@@ -810,7 +1055,7 @@ class GarageDashboard {
 	
 	render_inspection_list_item(ins) {
 		const date = ins.inspection_date ? frappe.datetime.str_to_user(ins.inspection_date) : '-';
-		const hasJobCard = ins.job_card ? '✅' : '⏳';
+		const hasJobCard = ins.job_card ? '<i class="fa fa-check-circle" style="color: green;"></i>' : '<i class="fa fa-clock-o" style="color: orange;"></i>';
 		return `
 			<div class="list-item" data-doctype="Vehicle Inspection" data-name="${ins.name}">
 				<div class="list-item-content">
@@ -858,15 +1103,319 @@ class GarageDashboard {
 	}
 	
 	render_dashboard(data) {
-		$('#kpi-in-progress').text(data.kpis.jobs_in_progress);
-		$('#kpi-ready-invoice').text(data.kpis.ready_to_invoice);
-		$('#kpi-revenue').text(format_currency(data.kpis.today_revenue));
-		$('#kpi-vehicles').text(data.kpis.vehicles_serviced);
+		if (!data) {
+			console.error('No dashboard data received');
+			return;
+		}
 		
-		this.render_revenue_chart(data.revenue_chart);
-		this.render_status_chart(data.job_status_summary);
-		this.render_top_services(data.top_services);
-		this.render_top_parts(data.top_parts);
+		console.log('Dashboard data received:', data);
+		
+		// Update KPIs
+		if (data.kpis) {
+			$('#kpi-in-progress').text(data.kpis.jobs_in_progress || 0);
+			$('#kpi-ready-invoice').text(data.kpis.ready_to_invoice || 0);
+			$('#kpi-revenue').text(format_currency(data.kpis.today_revenue || 0));
+			$('#kpi-vehicles').text(data.kpis.vehicles_serviced || 0);
+			
+			// Update KPI details
+			$('#kpi-in-progress-detail').text(`${data.kpis.total_jobs || 0} total jobs`);
+			$('#kpi-ready-invoice-detail').text(`Value: ${format_currency(data.kpis.ready_to_invoice_value || 0)}`);
+			$('#kpi-revenue-detail').text(`This week: ${format_currency(data.kpis.week_revenue || 0)}`);
+			$('#kpi-vehicles-detail').text(`This week: ${data.kpis.vehicles_this_week || 0}`);
+		}
+		
+		// Render recently closed jobs (always render, even if empty)
+		this.render_recently_closed_jobs(data.recently_closed_jobs || []);
+		
+		// Render today's appointments (always render, even if empty)
+		this.render_today_appointments(data.today_appointments || []);
+		
+		// Render pending inspections (always render, even if empty)
+		this.render_pending_inspections(data.pending_inspections || []);
+		
+		// Render jobs ready to invoice (always render, even if empty)
+		this.render_jobs_ready_to_invoice(data.jobs_ready_to_invoice || []);
+		
+		// Render today's completed tasks (always render, even if empty)
+		this.render_today_completed_tasks(data.today_completed_tasks || { jobs: 0, appointments: 0, inspections: 0, total: 0 });
+		
+		// Render daily jobs chart (always render, even if empty)
+		this.render_daily_jobs_chart(data.daily_jobs_chart || []);
+		
+		// Render upcoming appointments (always render, even if empty)
+		this.render_upcoming_appointments(data.upcoming_appointments || []);
+	}
+	
+	render_detailed_summaries(summaries) {
+		if (!summaries) {
+			console.warn('render_detailed_summaries called with no summaries');
+			// Show empty state if no summaries
+			if ($('#jobs-summary-detail').length) {
+				$('#jobs-summary-detail').html('<div class="empty-state">No data available</div>');
+			}
+			if ($('#appointments-summary-detail').length) {
+				$('#appointments-summary-detail').html('<div class="empty-state">No data available</div>');
+			}
+			if ($('#financial-summary-detail').length) {
+				$('#financial-summary-detail').html('<div class="empty-state">No data available</div>');
+			}
+			if ($('#inspections-summary-detail').length) {
+				$('#inspections-summary-detail').html('<div class="empty-state">No data available</div>');
+			}
+			return;
+		}
+		
+		// Jobs Summary
+		if (summaries.jobs) {
+			let html = '';
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-check-circle"></i> Completed Today</span>
+				<span class="summary-item-value">${summaries.jobs.completed_today || 0}</span>
+			</div>`;
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-clock-o"></i> In Progress</span>
+				<span class="summary-item-value">${summaries.jobs.in_progress || 0}</span>
+			</div>`;
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-file-text"></i> Draft</span>
+				<span class="summary-item-value">${summaries.jobs.draft || 0}</span>
+			</div>`;
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-check-square"></i> Approved</span>
+				<span class="summary-item-value">${summaries.jobs.approved || 0}</span>
+			</div>`;
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-calendar-check-o"></i> This Week</span>
+				<span class="summary-item-value">${summaries.jobs.this_week || 0}</span>
+			</div>`;
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-calendar"></i> This Month</span>
+				<span class="summary-item-value">${summaries.jobs.this_month || 0}</span>
+			</div>`;
+			$('#jobs-summary-detail').html(html);
+		} else {
+			$('#jobs-summary-detail').html('<div class="empty-state">No jobs data available</div>');
+		}
+		
+		// Appointments Summary
+		if (summaries.appointments) {
+			let html = '';
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-calendar"></i> Today</span>
+				<span class="summary-item-value">${summaries.appointments.today || 0}</span>
+			</div>`;
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-sign-in"></i> Checked-In</span>
+				<span class="summary-item-value">${summaries.appointments.checked_in || 0}</span>
+			</div>`;
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-clock-o"></i> Scheduled</span>
+				<span class="summary-item-value">${summaries.appointments.scheduled || 0}</span>
+			</div>`;
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-check-circle"></i> Completed</span>
+				<span class="summary-item-value positive">${summaries.appointments.completed || 0}</span>
+			</div>`;
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-times-circle"></i> Cancelled</span>
+				<span class="summary-item-value negative">${summaries.appointments.cancelled || 0}</span>
+			</div>`;
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-calendar-check-o"></i> This Week</span>
+				<span class="summary-item-value">${summaries.appointments.this_week || 0}</span>
+			</div>`;
+			$('#appointments-summary-detail').html(html);
+		} else {
+			$('#appointments-summary-detail').html('<div class="empty-state">No appointments data available</div>');
+		}
+		
+		// Financial Summary
+		if (summaries.financial) {
+			let html = '';
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-money"></i> Today's Revenue</span>
+				<span class="summary-item-value positive">${format_currency(summaries.financial.today_revenue || 0)}</span>
+			</div>`;
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-calendar-week"></i> This Week</span>
+				<span class="summary-item-value positive">${format_currency(summaries.financial.week_revenue || 0)}</span>
+			</div>`;
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-calendar"></i> This Month</span>
+				<span class="summary-item-value positive">${format_currency(summaries.financial.month_revenue || 0)}</span>
+			</div>`;
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-exclamation-triangle"></i> Outstanding</span>
+				<span class="summary-item-value negative">${format_currency(summaries.financial.outstanding || 0)}</span>
+			</div>`;
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-file-text"></i> Draft Invoices</span>
+				<span class="summary-item-value neutral">${summaries.financial.draft_invoices || 0}</span>
+			</div>`;
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-check-circle"></i> Paid Today</span>
+				<span class="summary-item-value positive">${format_currency(summaries.financial.paid_today || 0)}</span>
+			</div>`;
+			$('#financial-summary-detail').html(html);
+		} else {
+			$('#financial-summary-detail').html('<div class="empty-state">No financial data available</div>');
+		}
+		
+		// Inspections Summary
+		if (summaries.inspections) {
+			let html = '';
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-calendar"></i> Today</span>
+				<span class="summary-item-value">${summaries.inspections.today || 0}</span>
+			</div>`;
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-exclamation-circle"></i> Pending Action</span>
+				<span class="summary-item-value negative">${summaries.inspections.pending_action || 0}</span>
+			</div>`;
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-check-circle"></i> With Job Card</span>
+				<span class="summary-item-value positive">${summaries.inspections.with_jobcard || 0}</span>
+			</div>`;
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-clock-o"></i> Without Job Card</span>
+				<span class="summary-item-value">${summaries.inspections.without_jobcard || 0}</span>
+			</div>`;
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-calendar-check-o"></i> This Week</span>
+				<span class="summary-item-value">${summaries.inspections.this_week || 0}</span>
+			</div>`;
+			html += `<div class="summary-item">
+				<span class="summary-item-label"><i class="fa fa-calendar"></i> This Month</span>
+				<span class="summary-item-value">${summaries.inspections.this_month || 0}</span>
+			</div>`;
+			$('#inspections-summary-detail').html(html);
+		} else {
+			$('#inspections-summary-detail').html('<div class="empty-state">No inspections data available</div>');
+		}
+	}
+	
+	render_recently_closed_jobs(jobs) {
+		let html = '';
+		if (jobs && Array.isArray(jobs) && jobs.length > 0) {
+			jobs.forEach(job => {
+				html += this.render_job_list_item(job);
+			});
+		} else {
+			html = '<div class="empty-state">No recently closed jobs</div>';
+		}
+		if ($('#recently-closed-jobs-list').length) {
+			$('#recently-closed-jobs-list').html(html);
+			this.bind_list_item_clicks();
+		} else {
+			console.warn('Element #recently-closed-jobs-list not found');
+		}
+	}
+	
+	render_today_appointments(appointments) {
+		let html = '';
+		if (appointments && Array.isArray(appointments) && appointments.length > 0) {
+			appointments.forEach(apt => {
+				html += this.render_appointment_list_item(apt);
+			});
+		} else {
+			html = '<div class="empty-state">No appointments today</div>';
+		}
+		if ($('#today-appointments-list').length) {
+			$('#today-appointments-list').html(html);
+			this.bind_list_item_clicks();
+		} else {
+			console.warn('Element #today-appointments-list not found');
+		}
+	}
+	
+	render_pending_inspections(inspections) {
+		let html = '';
+		if (inspections && Array.isArray(inspections) && inspections.length > 0) {
+			inspections.forEach(ins => {
+				html += this.render_inspection_list_item(ins);
+			});
+		} else {
+			html = '<div class="empty-state">No pending inspections</div>';
+		}
+		if ($('#pending-inspections-list').length) {
+			$('#pending-inspections-list').html(html);
+			this.bind_list_item_clicks();
+		} else {
+			console.warn('Element #pending-inspections-list not found');
+		}
+	}
+	
+	render_jobs_ready_to_invoice(jobs) {
+		let html = '';
+		if (jobs && Array.isArray(jobs) && jobs.length > 0) {
+			jobs.forEach(job => {
+				html += this.render_job_list_item(job);
+			});
+		} else {
+			html = '<div class="empty-state">No jobs ready to invoice</div>';
+		}
+		if ($('#jobs-ready-invoice-list').length) {
+			$('#jobs-ready-invoice-list').html(html);
+			this.bind_list_item_clicks();
+		} else {
+			console.warn('Element #jobs-ready-invoice-list not found');
+		}
+	}
+	
+	render_today_completed_tasks(tasks) {
+		if (!$('#today-completed-tasks').length) {
+			console.warn('Element #today-completed-tasks not found');
+			return;
+		}
+		let html = '<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; text-align: center;">';
+		html += `<div><div style="font-size: 24px; font-weight: bold; color: var(--primary);">${tasks.jobs || 0}</div><div style="font-size: 12px; color: var(--text-muted);">Jobs</div></div>`;
+		html += `<div><div style="font-size: 24px; font-weight: bold; color: var(--primary);">${tasks.appointments || 0}</div><div style="font-size: 12px; color: var(--text-muted);">Appointments</div></div>`;
+		html += `<div><div style="font-size: 24px; font-weight: bold; color: var(--primary);">${tasks.inspections || 0}</div><div style="font-size: 12px; color: var(--text-muted);">Inspections</div></div>`;
+		html += '</div>';
+		html += `<div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color); text-align: center;"><div style="font-size: 18px; font-weight: 600;">Total: ${tasks.total || 0}</div></div>`;
+		$('#today-completed-tasks').html(html);
+	}
+	
+	render_daily_jobs_chart(data) {
+		if (!$('#daily-jobs-chart').length) {
+			console.warn('Element #daily-jobs-chart not found');
+			return;
+		}
+		if (!data || !Array.isArray(data) || data.length === 0) {
+			$('#daily-jobs-chart').html('<div class="empty-state">No job data available</div>');
+			return;
+		}
+		try {
+			new frappe.Chart('#daily-jobs-chart', {
+				type: 'line',
+				data: {
+					labels: data.map(d => frappe.datetime.str_to_user(d.date)),
+					datasets: [{ name: 'Jobs', values: data.map(d => d.job_count) }]
+				},
+				colors: ['#2196f3'],
+				height: 220
+			});
+		} catch (e) {
+			console.error('Error rendering chart:', e);
+			$('#daily-jobs-chart').html('<div class="empty-state">Error loading chart</div>');
+		}
+	}
+	
+	render_upcoming_appointments(appointments) {
+		let html = '';
+		if (appointments && Array.isArray(appointments) && appointments.length > 0) {
+			appointments.forEach(apt => {
+				html += this.render_appointment_list_item(apt);
+			});
+		} else {
+			html = '<div class="empty-state">No upcoming appointments</div>';
+		}
+		if ($('#upcoming-appointments-list').length) {
+			$('#upcoming-appointments-list').html(html);
+			this.bind_list_item_clicks();
+		} else {
+			console.warn('Element #upcoming-appointments-list not found');
+		}
 	}
 	
 	render_revenue_chart(data) {

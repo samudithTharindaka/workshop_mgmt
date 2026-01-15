@@ -92,6 +92,9 @@ on_session_creation = "workshop_mgmt.utils.on_session_creation"
 # before_install = "workshop_mgmt.install.before_install"
 # after_install = "workshop_mgmt.install.after_install"
 
+# Boot session - import whitelisted methods
+boot_session = "workshop_mgmt.startup.boot_session"
+
 # Uninstallation
 # ------------
 
