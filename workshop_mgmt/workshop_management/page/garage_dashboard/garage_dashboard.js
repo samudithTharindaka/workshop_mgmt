@@ -1,6 +1,11 @@
 // Copyright (c) 2025, Infoney and contributors
 // For license information, please see license.txt
 
+function format_currency(value) {
+	if (!value && value !== 0) return '-';
+	return frappe.format(value, {fieldtype: 'Currency'});
+}
+
 frappe.pages['garage-dashboard'].on_page_load = function(wrapper) {
 	new GarageDashboard(wrapper);
 }
@@ -30,18 +35,21 @@ class GarageDashboard {
 		this.wrapper = $(this.page.body);
 		this.sidebar = $(this.page.sidebar);
 		this.company = frappe.defaults.get_user_default("Company");
-		this.active_tab = 'jobs';
+		this.active_tab = 'dashboard';
 		
 		this.setup_filters();
 		this.setup_sidebar();
-		this.setup_layout();
+		this.setup_common_styles();
+		this.render_layout('dashboard');
 		this.load_dashboard_data('constructor');
-		this.load_sidebar_data('jobs');
 		
 		// Auto-refresh every 2 minutes
 		window._garageDashboardIntervalId = setInterval(() => {
-			this.load_dashboard_data('interval');
-			this.load_sidebar_data(this.active_tab);
+			if (this.active_tab === 'dashboard') {
+				this.load_dashboard_data('interval');
+			} else {
+				this.load_tab_content(this.active_tab);
+			}
 		}, 120000);
 		window._garageDashboardInstance = this;
 	}
@@ -61,7 +69,7 @@ class GarageDashboard {
 		
 		this.page.add_button(__('Refresh'), () => {
 			this.load_dashboard_data('refresh_button');
-			this.load_sidebar_data(this.active_tab);
+			this.load_tab_content(this.active_tab);
 		}, {icon: 'refresh'});
 		
 		this.page.add_field({
@@ -73,7 +81,7 @@ class GarageDashboard {
 			change: () => {
 				this.company = this.page.fields_dict.company.get_value();
 				this.load_dashboard_data('company_filter');
-				this.load_sidebar_data(this.active_tab);
+				this.load_tab_content(this.active_tab);
 			}
 		});
 		
@@ -149,121 +157,34 @@ class GarageDashboard {
 					background: var(--primary);
 					color: white;
 				}
-				.garage-sidebar-content {
-					max-height: calc(100vh - 250px);
-					overflow-y: auto;
-				}
-				.sidebar-section {
-					border-bottom: 1px solid var(--border-color);
-				}
-				.sidebar-section:last-child {
-					border-bottom: none;
-				}
-				.sidebar-section-header {
-					padding: 10px 15px;
-					font-size: 10px;
-					font-weight: 700;
-					text-transform: uppercase;
-					letter-spacing: 0.5px;
-					color: var(--text-muted);
-					background: var(--bg-color);
-					display: flex;
-					justify-content: space-between;
-					align-items: center;
-					position: sticky;
-					top: 0;
-				}
-				.sidebar-section-header .section-count {
-					background: var(--bg-dark-gray);
-					padding: 2px 6px;
-					border-radius: 8px;
-					font-size: 10px;
-				}
-				.sidebar-item {
-					padding: 10px 15px;
-					border-bottom: 1px solid var(--border-color);
-					cursor: pointer;
-					transition: background 0.1s;
-				}
-				.sidebar-item:hover {
-					background: var(--bg-light-gray);
-				}
-				.sidebar-item:last-child {
-					border-bottom: none;
-				}
-				.sidebar-item-header {
-					display: flex;
-					justify-content: space-between;
-					align-items: center;
-					margin-bottom: 4px;
-				}
-				.sidebar-item-title {
-					font-weight: 600;
-					font-size: 12px;
-					color: var(--text-color);
-				}
-				.sidebar-item-details {
-					font-size: 11px;
-					color: var(--text-muted);
-					display: flex;
-					gap: 10px;
-					flex-wrap: wrap;
-				}
-				.sidebar-empty {
-					padding: 25px 15px;
-					text-align: center;
-					color: var(--text-muted);
-					font-size: 12px;
-				}
-				.status-badge {
-					display: inline-block;
-					padding: 2px 8px;
-					border-radius: 10px;
-					font-size: 10px;
-					font-weight: 600;
-				}
-				.status-draft { background: #e0e0e0; color: #555; }
-				.status-scheduled { background: #e3f2fd; color: #1565c0; }
-				.status-checked-in { background: #bbdefb; color: #1976d2; }
-				.status-in-progress { background: #fff3e0; color: #ef6c00; }
-				.status-inspected { background: #e8eaf6; color: #3f51b5; }
-				.status-estimated { background: #fce4ec; color: #c2185b; }
-				.status-approved { background: #e8f5e9; color: #2e7d32; }
-				.status-ready-to-invoice { background: #fff8e1; color: #f57c00; }
-				.status-invoiced { background: #c8e6c9; color: #1b5e20; }
-				.status-closed { background: #eceff1; color: #546e7a; }
-				.status-completed { background: #c8e6c9; color: #1b5e20; }
-				.status-cancelled { background: #ffebee; color: #c62828; }
-				.status-no-show { background: #fbe9e7; color: #d84315; }
-				.status-paid { background: #c8e6c9; color: #1b5e20; }
-				.status-unpaid { background: #ffebee; color: #c62828; }
 			</style>
 			
 			<div class="garage-sidebar">
 				<div class="garage-sidebar-tabs">
-					<div class="garage-sidebar-tab active" data-tab="jobs">
-						<span class="tab-icon">🔧</span>
+					<div class="garage-sidebar-tab active" data-tab="dashboard">
+						<span class="tab-icon"><i class="fa fa-dashboard"></i></span>
+						<span>Dashboard</span>
+					</div>
+					<div class="garage-sidebar-tab" data-tab="jobs">
+						<span class="tab-icon"><i class="fa fa-wrench"></i></span>
 						<span>Jobs</span>
-						<span class="tab-badge" id="sidebar-jobs-count">0</span>
+						<span class="tab-badge" id="sidebar-jobs-count">-</span>
 					</div>
 					<div class="garage-sidebar-tab" data-tab="appointments">
-						<span class="tab-icon">📅</span>
+						<span class="tab-icon"><i class="fa fa-calendar"></i></span>
 						<span>Appointments</span>
-						<span class="tab-badge" id="sidebar-appointments-count">0</span>
+						<span class="tab-badge" id="sidebar-appointments-count">-</span>
 					</div>
 					<div class="garage-sidebar-tab" data-tab="inspections">
-						<span class="tab-icon">🔍</span>
+						<span class="tab-icon"><i class="fa fa-search"></i></span>
 						<span>Inspections</span>
-						<span class="tab-badge" id="sidebar-inspections-count">0</span>
+						<span class="tab-badge" id="sidebar-inspections-count">-</span>
 					</div>
 					<div class="garage-sidebar-tab" data-tab="sales">
-						<span class="tab-icon">💰</span>
+						<span class="tab-icon"><i class="fa fa-money"></i></span>
 						<span>Sales</span>
-						<span class="tab-badge" id="sidebar-sales-count">0</span>
+						<span class="tab-badge" id="sidebar-sales-count">-</span>
 					</div>
-				</div>
-				<div class="garage-sidebar-content" id="garage-sidebar-content">
-					<div class="sidebar-empty">Loading...</div>
 				</div>
 			</div>
 		`);
@@ -279,426 +200,253 @@ class GarageDashboard {
 		this.active_tab = tab;
 		this.sidebar.find('.garage-sidebar-tab').removeClass('active');
 		this.sidebar.find(`.garage-sidebar-tab[data-tab="${tab}"]`).addClass('active');
-		this.load_sidebar_data(tab);
+		this.render_layout(tab);
+		
+		if (tab === 'dashboard') {
+			this.load_dashboard_data('tab_switch');
+		} else {
+			this.load_tab_content(tab);
+		}
 	}
 	
-	load_sidebar_data(tab) {
-		$('#garage-sidebar-content').html('<div class="sidebar-empty">Loading...</div>');
-		
-		frappe.call({
-			method: 'workshop_mgmt.workshop_management.page.garage_dashboard.garage_dashboard.get_sidebar_data',
-			args: {
-				filters: { company: this.company },
-				tab: tab
-			},
-			callback: (r) => {
-				if (r.message) {
-					this.render_sidebar_content(tab, r.message);
-				}
-			}
-		});
+	setup_common_styles() {
+		// Common styles that apply to all layouts
+		if (!$('#garage-common-styles').length) {
+			$('head').append(`
+				<style id="garage-common-styles">
+					.garage-dashboard {
+						padding: 20px;
+						background: var(--bg-color);
+					}
+					.quick-access-banner {
+						background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+						color: white;
+						padding: 20px 25px;
+						border-radius: 10px;
+						margin-bottom: 20px;
+						display: flex;
+						justify-content: space-between;
+						align-items: center;
+						box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+					}
+					.quick-access-banner h2 {
+						margin: 0;
+						font-size: 22px;
+						font-weight: 600;
+					}
+					.quick-access-banner p {
+						margin: 5px 0 0 0;
+						opacity: 0.9;
+						font-size: 13px;
+					}
+					.quick-actions-buttons {
+						display: flex;
+						gap: 10px;
+					}
+					.quick-action-btn {
+						background: rgba(255,255,255,0.2);
+						border: 1px solid rgba(255,255,255,0.3);
+						color: white;
+						padding: 10px 18px;
+						border-radius: 6px;
+						cursor: pointer;
+						transition: all 0.2s;
+						font-weight: 500;
+						font-size: 13px;
+					}
+					.quick-action-btn:hover {
+						background: rgba(255,255,255,0.3);
+						transform: translateY(-2px);
+					}
+					.kpi-cards {
+						display: grid;
+						grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+						gap: 15px;
+						margin-bottom: 20px;
+					}
+					.kpi-card {
+						background: var(--card-bg);
+						border-radius: 8px;
+						padding: 18px;
+						box-shadow: var(--card-shadow);
+						transition: transform 0.2s;
+					}
+					.kpi-card:hover {
+						transform: translateY(-3px);
+					}
+					.kpi-value {
+						font-size: 28px;
+						font-weight: bold;
+						margin: 8px 0;
+					}
+					.kpi-label {
+						color: var(--text-muted);
+						font-size: 12px;
+						text-transform: uppercase;
+						font-weight: 600;
+					}
+					.kpi-card.blue { border-left: 4px solid #2196f3; }
+					.kpi-card.blue .kpi-value { color: #2196f3; }
+					.kpi-card.green { border-left: 4px solid #4caf50; }
+					.kpi-card.green .kpi-value { color: #4caf50; }
+					.kpi-card.orange { border-left: 4px solid #ff9800; }
+					.kpi-card.orange .kpi-value { color: #ff9800; }
+					.kpi-card.purple { border-left: 4px solid #9c27b0; }
+					.kpi-card.purple .kpi-value { color: #9c27b0; }
+					.dashboard-row {
+						display: grid;
+						grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+						gap: 15px;
+						margin-bottom: 15px;
+					}
+					.dashboard-card {
+						background: var(--card-bg);
+						border-radius: 8px;
+						padding: 18px;
+						box-shadow: var(--card-shadow);
+					}
+					.dashboard-card h4 {
+						margin: 0 0 12px 0;
+						font-size: 15px;
+						color: var(--heading-color);
+						font-weight: 600;
+						display: flex;
+						justify-content: space-between;
+						align-items: center;
+					}
+					.dashboard-card-header {
+						display: flex;
+						justify-content: space-between;
+						align-items: center;
+						margin-bottom: 12px;
+					}
+					.dashboard-card-header h4 {
+						margin: 0;
+					}
+					.view-all-link {
+						font-size: 12px;
+						color: var(--primary);
+						cursor: pointer;
+						text-decoration: none;
+					}
+					.view-all-link:hover {
+						text-decoration: underline;
+					}
+					.chart-container {
+						height: 250px;
+						position: relative;
+					}
+					.list-item {
+						padding: 10px 0;
+						border-bottom: 1px solid var(--border-color);
+						display: flex;
+						justify-content: space-between;
+						align-items: center;
+						cursor: pointer;
+						transition: background 0.1s;
+					}
+					.list-item:hover {
+						background: var(--bg-light-gray);
+					}
+					.list-item:last-child {
+						border-bottom: none;
+					}
+					.list-item-content {
+						flex: 1;
+					}
+					.list-item-title {
+						font-weight: 600;
+						font-size: 13px;
+						color: var(--text-color);
+						margin-bottom: 4px;
+					}
+					.list-item-details {
+						font-size: 11px;
+						color: var(--text-muted);
+						display: flex;
+						gap: 10px;
+						flex-wrap: wrap;
+					}
+					.list-item-meta {
+						text-align: right;
+					}
+					.status-badge {
+						display: inline-block;
+						padding: 2px 8px;
+						border-radius: 10px;
+						font-size: 10px;
+						font-weight: 600;
+					}
+					.status-draft { background: #e0e0e0; color: #555; }
+					.status-scheduled { background: #e3f2fd; color: #1565c0; }
+					.status-checked-in { background: #bbdefb; color: #1976d2; }
+					.status-in-progress { background: #fff3e0; color: #ef6c00; }
+					.status-inspected { background: #e8eaf6; color: #3f51b5; }
+					.status-estimated { background: #fce4ec; color: #c2185b; }
+					.status-approved { background: #e8f5e9; color: #2e7d32; }
+					.status-ready-to-invoice { background: #fff8e1; color: #f57c00; }
+					.status-invoiced { background: #c8e6c9; color: #1b5e20; }
+					.status-closed { background: #eceff1; color: #546e7a; }
+					.status-completed { background: #c8e6c9; color: #1b5e20; }
+					.status-cancelled { background: #ffebee; color: #c62828; }
+					.status-no-show { background: #fbe9e7; color: #d84315; }
+					.status-paid { background: #c8e6c9; color: #1b5e20; }
+					.status-unpaid { background: #ffebee; color: #c62828; }
+					.empty-state {
+						text-align: center;
+						padding: 30px;
+						color: var(--text-muted);
+						font-size: 13px;
+					}
+					.section-header {
+						padding: 10px 0;
+						font-size: 11px;
+						font-weight: 700;
+						text-transform: uppercase;
+						letter-spacing: 0.5px;
+						color: var(--text-muted);
+						margin-top: 15px;
+						margin-bottom: 8px;
+						border-bottom: 1px solid var(--border-color);
+					}
+					.section-header:first-child {
+						margin-top: 0;
+					}
+				</style>
+			`);
+		}
 	}
 	
-	render_sidebar_content(tab, data) {
-		let html = '';
+	render_layout(tab) {
+		// Clear existing content
+		this.wrapper.empty();
 		
-		if (tab === 'jobs') {
-			html = this.render_jobs_sidebar(data);
-			$('#sidebar-jobs-count').text(data.counts.active + data.counts.pending);
+		// Render appropriate layout based on tab
+		if (tab === 'dashboard') {
+			this.render_dashboard_layout();
+		} else if (tab === 'jobs') {
+			this.render_jobs_layout();
 		} else if (tab === 'appointments') {
-			html = this.render_appointments_sidebar(data);
-			$('#sidebar-appointments-count').text(data.counts.today + data.counts.checked_in);
+			this.render_appointments_layout();
 		} else if (tab === 'inspections') {
-			html = this.render_inspections_sidebar(data);
-			$('#sidebar-inspections-count').text(data.counts.today + data.counts.pending_action);
+			this.render_inspections_layout();
 		} else if (tab === 'sales') {
-			html = this.render_sales_sidebar(data);
-			$('#sidebar-sales-count').text(data.counts.today);
+			this.render_sales_layout();
 		}
-		
-		$('#garage-sidebar-content').html(html);
-		
-		// Click handlers for items
-		$('#garage-sidebar-content .sidebar-item').on('click', function() {
-			const doctype = $(this).data('doctype');
-			const name = $(this).data('name');
-			if (doctype && name) {
-				frappe.set_route('Form', doctype, name);
-			}
-		});
 	}
 	
-	render_jobs_sidebar(data) {
-		let html = '';
-		
-		html += `<div class="sidebar-section">
-			<div class="sidebar-section-header">
-				<span>Active Jobs</span>
-				<span class="section-count">${data.counts.active}</span>
-			</div>`;
-		if (data.active.length > 0) {
-			data.active.forEach(job => { html += this.render_job_item(job); });
-		} else {
-			html += '<div class="sidebar-empty">No active jobs</div>';
-		}
-		html += '</div>';
-		
-		html += `<div class="sidebar-section">
-			<div class="sidebar-section-header">
-				<span>Pending Invoice</span>
-				<span class="section-count">${data.counts.pending}</span>
-			</div>`;
-		if (data.pending.length > 0) {
-			data.pending.forEach(job => { html += this.render_job_item(job); });
-		} else {
-			html += '<div class="sidebar-empty">No pending invoices</div>';
-		}
-		html += '</div>';
-		
-		html += `<div class="sidebar-section">
-			<div class="sidebar-section-header">
-				<span>Recently Completed</span>
-				<span class="section-count">${data.counts.completed}</span>
-			</div>`;
-		if (data.completed.length > 0) {
-			data.completed.slice(0, 10).forEach(job => { html += this.render_job_item(job); });
-		} else {
-			html += '<div class="sidebar-empty">No completed jobs</div>';
-		}
-		html += '</div>';
-		
-		return html;
-	}
-	
-	render_job_item(job) {
-		const status_class = 'status-' + job.status.toLowerCase().replace(/ /g, '-');
-		return `
-			<div class="sidebar-item" data-doctype="Job Card" data-name="${job.name}">
-				<div class="sidebar-item-header">
-					<span class="sidebar-item-title">${job.name}</span>
-					<span class="status-badge ${status_class}">${job.status}</span>
-				</div>
-				<div class="sidebar-item-details">
-					<span>${job.customer || '-'}</span>
-					<span>${job.vehicle || '-'}</span>
-				</div>
-			</div>
-		`;
-	}
-	
-	render_appointments_sidebar(data) {
-		let html = '';
-		
-		html += `<div class="sidebar-section">
-			<div class="sidebar-section-header">
-				<span>Checked-In</span>
-				<span class="section-count">${data.counts.checked_in}</span>
-			</div>`;
-		if (data.checked_in.length > 0) {
-			data.checked_in.forEach(apt => { html += this.render_appointment_item(apt); });
-		} else {
-			html += '<div class="sidebar-empty">No checked-in</div>';
-		}
-		html += '</div>';
-		
-		html += `<div class="sidebar-section">
-			<div class="sidebar-section-header">
-				<span>Today</span>
-				<span class="section-count">${data.counts.today}</span>
-			</div>`;
-		if (data.today.length > 0) {
-			data.today.forEach(apt => { html += this.render_appointment_item(apt); });
-		} else {
-			html += '<div class="sidebar-empty">No appointments today</div>';
-		}
-		html += '</div>';
-		
-		html += `<div class="sidebar-section">
-			<div class="sidebar-section-header">
-				<span>Upcoming</span>
-				<span class="section-count">${data.counts.upcoming}</span>
-			</div>`;
-		if (data.upcoming.length > 0) {
-			data.upcoming.slice(0, 10).forEach(apt => { html += this.render_appointment_item(apt); });
-		} else {
-			html += '<div class="sidebar-empty">No upcoming</div>';
-		}
-		html += '</div>';
-		
-		return html;
-	}
-	
-	render_appointment_item(apt) {
-		const status_class = 'status-' + apt.status.toLowerCase().replace(/-/g, '-');
-		const time = apt.scheduled_start ? frappe.datetime.str_to_user(apt.scheduled_start) : '-';
-		return `
-			<div class="sidebar-item" data-doctype="Service Appointment" data-name="${apt.name}">
-				<div class="sidebar-item-header">
-					<span class="sidebar-item-title">${apt.name}</span>
-					<span class="status-badge ${status_class}">${apt.status}</span>
-				</div>
-				<div class="sidebar-item-details">
-					<span>${apt.customer || '-'}</span>
-					<span>${time}</span>
-				</div>
-			</div>
-		`;
-	}
-	
-	render_inspections_sidebar(data) {
-		let html = '';
-		
-		html += `<div class="sidebar-section">
-			<div class="sidebar-section-header">
-				<span>Pending Action</span>
-				<span class="section-count">${data.counts.pending_action}</span>
-			</div>`;
-		if (data.pending_action.length > 0) {
-			data.pending_action.forEach(ins => { html += this.render_inspection_item(ins); });
-		} else {
-			html += '<div class="sidebar-empty">No pending</div>';
-		}
-		html += '</div>';
-		
-		html += `<div class="sidebar-section">
-			<div class="sidebar-section-header">
-				<span>Today</span>
-				<span class="section-count">${data.counts.today}</span>
-			</div>`;
-		if (data.today.length > 0) {
-			data.today.forEach(ins => { html += this.render_inspection_item(ins); });
-		} else {
-			html += '<div class="sidebar-empty">No inspections today</div>';
-		}
-		html += '</div>';
-		
-		html += `<div class="sidebar-section">
-			<div class="sidebar-section-header">
-				<span>Recent</span>
-				<span class="section-count">${data.counts.recent}</span>
-			</div>`;
-		if (data.recent.length > 0) {
-			data.recent.slice(0, 10).forEach(ins => { html += this.render_inspection_item(ins); });
-		} else {
-			html += '<div class="sidebar-empty">No recent</div>';
-		}
-		html += '</div>';
-		
-		return html;
-	}
-	
-	render_inspection_item(ins) {
-		const date = ins.inspection_date ? frappe.datetime.str_to_user(ins.inspection_date) : '-';
-		const hasJobCard = ins.job_card ? '✅' : '⏳';
-		return `
-			<div class="sidebar-item" data-doctype="Vehicle Inspection" data-name="${ins.name}">
-				<div class="sidebar-item-header">
-					<span class="sidebar-item-title">${ins.name}</span>
-					<span>${hasJobCard}</span>
-				</div>
-				<div class="sidebar-item-details">
-					<span>${ins.customer || '-'}</span>
-					<span>${ins.vehicle || '-'}</span>
-				</div>
-			</div>
-		`;
-	}
-	
-	render_sales_sidebar(data) {
-		let html = '';
-		
-		html += `<div class="sidebar-section">
-			<div class="sidebar-section-header">
-				<span>Today's Sales</span>
-				<span class="section-count">${format_currency(data.totals.today)}</span>
-			</div>`;
-		if (data.today.length > 0) {
-			data.today.forEach(inv => { html += this.render_invoice_item(inv); });
-		} else {
-			html += '<div class="sidebar-empty">No sales today</div>';
-		}
-		html += '</div>';
-		
-		html += `<div class="sidebar-section">
-			<div class="sidebar-section-header">
-				<span>Unpaid</span>
-				<span class="section-count">${data.counts.unpaid}</span>
-			</div>`;
-		if (data.unpaid.length > 0) {
-			data.unpaid.slice(0, 10).forEach(inv => { html += this.render_invoice_item(inv, true); });
-		} else {
-			html += '<div class="sidebar-empty">No unpaid invoices</div>';
-		}
-		html += '</div>';
-		
-		html += `<div class="sidebar-section">
-			<div class="sidebar-section-header">
-				<span>Draft</span>
-				<span class="section-count">${data.counts.draft}</span>
-			</div>`;
-		if (data.draft.length > 0) {
-			data.draft.slice(0, 10).forEach(inv => { html += this.render_invoice_item(inv); });
-		} else {
-			html += '<div class="sidebar-empty">No drafts</div>';
-		}
-		html += '</div>';
-		
-		return html;
-	}
-	
-	render_invoice_item(inv, showOutstanding = false) {
-		const amount = showOutstanding && inv.outstanding_amount 
-			? format_currency(inv.outstanding_amount) + ' due'
-			: format_currency(inv.grand_total);
-		const status = inv.status || 'Draft';
-		const status_class = 'status-' + status.toLowerCase().replace(/ /g, '-');
-		return `
-			<div class="sidebar-item" data-doctype="Sales Invoice" data-name="${inv.name}">
-				<div class="sidebar-item-header">
-					<span class="sidebar-item-title">${inv.name}</span>
-					<span class="status-badge ${status_class}">${status}</span>
-				</div>
-				<div class="sidebar-item-details">
-					<span>${inv.customer || '-'}</span>
-					<span>${amount}</span>
-				</div>
-			</div>
-		`;
-	}
-	
-	setup_layout() {
+	render_dashboard_layout() {
 		this.wrapper.html(`
-			<style>
-				.garage-dashboard {
-					padding: 20px;
-					background: var(--bg-color);
-				}
-				.quick-access-banner {
-					background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-					color: white;
-					padding: 20px 25px;
-					border-radius: 10px;
-					margin-bottom: 20px;
-					display: flex;
-					justify-content: space-between;
-					align-items: center;
-					box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-				}
-				.quick-access-banner h2 {
-					margin: 0;
-					font-size: 22px;
-					font-weight: 600;
-				}
-				.quick-access-banner p {
-					margin: 5px 0 0 0;
-					opacity: 0.9;
-					font-size: 13px;
-				}
-				.quick-actions-buttons {
-					display: flex;
-					gap: 10px;
-				}
-				.quick-action-btn {
-					background: rgba(255,255,255,0.2);
-					border: 1px solid rgba(255,255,255,0.3);
-					color: white;
-					padding: 10px 18px;
-					border-radius: 6px;
-					cursor: pointer;
-					transition: all 0.2s;
-					font-weight: 500;
-					font-size: 13px;
-				}
-				.quick-action-btn:hover {
-					background: rgba(255,255,255,0.3);
-					transform: translateY(-2px);
-				}
-				.kpi-cards {
-					display: grid;
-					grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-					gap: 15px;
-					margin-bottom: 20px;
-				}
-				.kpi-card {
-					background: var(--card-bg);
-					border-radius: 8px;
-					padding: 18px;
-					box-shadow: var(--card-shadow);
-					transition: transform 0.2s;
-				}
-				.kpi-card:hover {
-					transform: translateY(-3px);
-				}
-				.kpi-value {
-					font-size: 28px;
-					font-weight: bold;
-					margin: 8px 0;
-				}
-				.kpi-label {
-					color: var(--text-muted);
-					font-size: 12px;
-					text-transform: uppercase;
-					font-weight: 600;
-				}
-				.kpi-card.blue { border-left: 4px solid #2196f3; }
-				.kpi-card.blue .kpi-value { color: #2196f3; }
-				.kpi-card.green { border-left: 4px solid #4caf50; }
-				.kpi-card.green .kpi-value { color: #4caf50; }
-				.kpi-card.orange { border-left: 4px solid #ff9800; }
-				.kpi-card.orange .kpi-value { color: #ff9800; }
-				.kpi-card.purple { border-left: 4px solid #9c27b0; }
-				.kpi-card.purple .kpi-value { color: #9c27b0; }
-				
-				.dashboard-row {
-					display: grid;
-					grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-					gap: 15px;
-					margin-bottom: 15px;
-				}
-				.dashboard-card {
-					background: var(--card-bg);
-					border-radius: 8px;
-					padding: 18px;
-					box-shadow: var(--card-shadow);
-				}
-				.dashboard-card h4 {
-					margin: 0 0 12px 0;
-					font-size: 15px;
-					color: var(--heading-color);
-					font-weight: 600;
-				}
-				.chart-container {
-					height: 250px;
-					position: relative;
-				}
-				.list-item {
-					padding: 10px 0;
-					border-bottom: 1px solid var(--border-color);
-					display: flex;
-					justify-content: space-between;
-					align-items: center;
-				}
-				.list-item:last-child {
-					border-bottom: none;
-				}
-				.empty-state {
-					text-align: center;
-					padding: 30px;
-					color: var(--text-muted);
-					font-size: 13px;
-				}
-			</style>
-			
 			<div class="garage-dashboard">
 				<div class="quick-access-banner">
 					<div>
-						<h2>🚗 Garage Dashboard</h2>
+						<h2><i class="fa fa-car"></i> Garage Dashboard</h2>
 						<p>Manage workshop operations, track jobs, and monitor performance</p>
 					</div>
 					<div class="quick-actions-buttons">
-						<button class="quick-action-btn" onclick="frappe.new_doc('Job Card')">+ New Job</button>
-						<button class="quick-action-btn" onclick="frappe.new_doc('Service Appointment')">📅 Appointment</button>
-						<button class="quick-action-btn" onclick="frappe.new_doc('Vehicle Inspection')">🔍 Inspection</button>
+						<button class="quick-action-btn" onclick="frappe.new_doc('Job Card')"><i class="fa fa-plus"></i> New Job</button>
+						<button class="quick-action-btn" onclick="frappe.new_doc('Service Appointment')"><i class="fa fa-calendar"></i> Appointment</button>
+						<button class="quick-action-btn" onclick="frappe.new_doc('Vehicle Inspection')"><i class="fa fa-search"></i> Inspection</button>
 					</div>
 				</div>
 				
@@ -746,6 +494,103 @@ class GarageDashboard {
 		`);
 	}
 	
+	render_jobs_layout() {
+		this.wrapper.html(`
+			<div class="garage-dashboard">
+				<div class="quick-access-banner">
+					<div>
+						<h2><i class="fa fa-wrench"></i> Jobs Management</h2>
+						<p>View and manage all service jobs</p>
+					</div>
+					<div class="quick-actions-buttons">
+						<button class="quick-action-btn" onclick="frappe.new_doc('Job Card')"><i class="fa fa-plus"></i> New Job</button>
+					</div>
+				</div>
+				
+				<div class="dashboard-card">
+					<div class="dashboard-card-header">
+						<h4><i class="fa fa-wrench"></i> Jobs</h4>
+						<a class="view-all-link" onclick="frappe.set_route('List', 'Job Card')">View All</a>
+					</div>
+					<div id="jobs-content" style="max-height: 600px; overflow-y: auto;"></div>
+				</div>
+			</div>
+		`);
+	}
+	
+	render_appointments_layout() {
+		this.wrapper.html(`
+			<div class="garage-dashboard">
+				<div class="quick-access-banner">
+					<div>
+						<h2><i class="fa fa-calendar"></i> Appointments Management</h2>
+						<p>View and manage service appointments</p>
+					</div>
+					<div class="quick-actions-buttons">
+						<button class="quick-action-btn" onclick="frappe.new_doc('Service Appointment')"><i class="fa fa-plus"></i> New Appointment</button>
+					</div>
+				</div>
+				
+				<div class="dashboard-card">
+					<div class="dashboard-card-header">
+						<h4><i class="fa fa-calendar"></i> Appointments</h4>
+						<a class="view-all-link" onclick="frappe.set_route('List', 'Service Appointment')">View All</a>
+					</div>
+					<div id="appointments-content" style="max-height: 600px; overflow-y: auto;"></div>
+				</div>
+			</div>
+		`);
+	}
+	
+	render_inspections_layout() {
+		this.wrapper.html(`
+			<div class="garage-dashboard">
+				<div class="quick-access-banner">
+					<div>
+						<h2><i class="fa fa-search"></i> Inspections Management</h2>
+						<p>View and manage vehicle inspections</p>
+					</div>
+					<div class="quick-actions-buttons">
+						<button class="quick-action-btn" onclick="frappe.new_doc('Vehicle Inspection')"><i class="fa fa-plus"></i> New Inspection</button>
+					</div>
+				</div>
+				
+				<div class="dashboard-card">
+					<div class="dashboard-card-header">
+						<h4><i class="fa fa-search"></i> Inspections</h4>
+						<a class="view-all-link" onclick="frappe.set_route('List', 'Vehicle Inspection')">View All</a>
+					</div>
+					<div id="inspections-content" style="max-height: 600px; overflow-y: auto;"></div>
+				</div>
+			</div>
+		`);
+	}
+	
+	render_sales_layout() {
+		this.wrapper.html(`
+			<div class="garage-dashboard">
+				<div class="quick-access-banner">
+					<div>
+						<h2><i class="fa fa-money"></i> Sales Management</h2>
+						<p>View and manage sales invoices</p>
+					</div>
+					<div class="quick-actions-buttons">
+						<button class="quick-action-btn" onclick="frappe.set_route('List', 'Sales Invoice')"><i class="fa fa-list"></i> View All Invoices</button>
+					</div>
+				</div>
+				
+				<div class="dashboard-card">
+					<div class="dashboard-card-header">
+						<h4><i class="fa fa-money"></i> Sales</h4>
+						<a class="view-all-link" onclick="frappe.set_route('List', 'Sales Invoice')">View All</a>
+					</div>
+					<div id="sales-content" style="max-height: 600px; overflow-y: auto;"></div>
+				</div>
+			</div>
+		`);
+	}
+	
+	
 	load_dashboard_data(source = 'unknown') {
 		const showProgress = source !== 'interval';
 		if (showProgress) {
@@ -760,6 +605,255 @@ class GarageDashboard {
 				if (r.message) this.render_dashboard(r.message);
 			},
 			error: () => { if (showProgress) frappe.hide_progress(); }
+		});
+	}
+	
+	load_tab_content(tab) {
+		const contentId = tab + '-content';
+		$('#' + contentId).html('<div class="empty-state">Loading...</div>');
+		
+		frappe.call({
+			method: 'workshop_mgmt.workshop_management.page.garage_dashboard.garage_dashboard.get_sidebar_data',
+			args: {
+				filters: { company: this.company },
+				tab: tab
+			},
+			callback: (r) => {
+				if (r.message) {
+					this.render_tab_content(tab, r.message);
+				}
+			}
+		});
+	}
+	
+	render_tab_content(tab, data) {
+		// Update tab badge counts
+		if (tab === 'jobs') {
+			$('#sidebar-jobs-count').text((data.counts.active || 0) + (data.counts.pending || 0));
+			this.render_jobs_section(data);
+		} else if (tab === 'appointments') {
+			$('#sidebar-appointments-count').text((data.counts.today || 0) + (data.counts.checked_in || 0));
+			this.render_appointments_section(data);
+		} else if (tab === 'inspections') {
+			$('#sidebar-inspections-count').text((data.counts.today || 0) + (data.counts.pending_action || 0));
+			this.render_inspections_section(data);
+		} else if (tab === 'sales') {
+			$('#sidebar-sales-count').text(data.counts.today || 0);
+			this.render_sales_section(data);
+		}
+	}
+	
+	render_jobs_section(data) {
+		let html = '';
+		
+		if (data.active && data.active.length > 0) {
+			html += '<div class="section-header">Active Jobs (' + data.counts.active + ')</div>';
+			data.active.forEach(job => {
+				html += this.render_job_list_item(job);
+			});
+		}
+		
+		if (data.pending && data.pending.length > 0) {
+			html += '<div class="section-header">Pending Invoice (' + data.counts.pending + ')</div>';
+			data.pending.forEach(job => {
+				html += this.render_job_list_item(job);
+			});
+		}
+		
+		if (data.completed && data.completed.length > 0) {
+			html += '<div class="section-header">Recently Completed (' + data.counts.completed + ')</div>';
+			data.completed.slice(0, 10).forEach(job => {
+				html += this.render_job_list_item(job);
+			});
+		}
+		
+		if (!html) {
+			html = '<div class="empty-state">No jobs found</div>';
+		}
+		
+		$('#jobs-content').html(html);
+		this.bind_list_item_clicks();
+	}
+	
+	render_appointments_section(data) {
+		let html = '';
+		
+		if (data.checked_in && data.checked_in.length > 0) {
+			html += '<div class="section-header">Checked-In (' + data.counts.checked_in + ')</div>';
+			data.checked_in.forEach(apt => {
+				html += this.render_appointment_list_item(apt);
+			});
+		}
+		
+		if (data.today && data.today.length > 0) {
+			html += '<div class="section-header">Today (' + data.counts.today + ')</div>';
+			data.today.forEach(apt => {
+				html += this.render_appointment_list_item(apt);
+			});
+		}
+		
+		if (data.upcoming && data.upcoming.length > 0) {
+			html += '<div class="section-header">Upcoming (' + data.counts.upcoming + ')</div>';
+			data.upcoming.slice(0, 20).forEach(apt => {
+				html += this.render_appointment_list_item(apt);
+			});
+		}
+		
+		if (!html) {
+			html = '<div class="empty-state">No appointments found</div>';
+		}
+		
+		$('#appointments-content').html(html);
+		this.bind_list_item_clicks();
+	}
+	
+	render_inspections_section(data) {
+		let html = '';
+		
+		if (data.pending_action && data.pending_action.length > 0) {
+			html += '<div class="section-header">Pending Action (' + data.counts.pending_action + ')</div>';
+			data.pending_action.forEach(ins => {
+				html += this.render_inspection_list_item(ins);
+			});
+		}
+		
+		if (data.today && data.today.length > 0) {
+			html += '<div class="section-header">Today (' + data.counts.today + ')</div>';
+			data.today.forEach(ins => {
+				html += this.render_inspection_list_item(ins);
+			});
+		}
+		
+		if (data.recent && data.recent.length > 0) {
+			html += '<div class="section-header">Recent (' + data.counts.recent + ')</div>';
+			data.recent.slice(0, 20).forEach(ins => {
+				html += this.render_inspection_list_item(ins);
+			});
+		}
+		
+		if (!html) {
+			html = '<div class="empty-state">No inspections found</div>';
+		}
+		
+		$('#inspections-content').html(html);
+		this.bind_list_item_clicks();
+	}
+	
+	render_sales_section(data) {
+		let html = '';
+		
+		if (data.today && data.today.length > 0) {
+			html += '<div class="section-header">Today\'s Sales (' + data.counts.today + ')</div>';
+			data.today.forEach(inv => {
+				html += this.render_invoice_list_item(inv);
+			});
+		}
+		
+		if (data.unpaid && data.unpaid.length > 0) {
+			html += '<div class="section-header">Unpaid (' + data.counts.unpaid + ')</div>';
+			data.unpaid.forEach(inv => {
+				html += this.render_invoice_list_item(inv, true);
+			});
+		}
+		
+		if (data.draft && data.draft.length > 0) {
+			html += '<div class="section-header">Draft (' + data.counts.draft + ')</div>';
+			data.draft.slice(0, 20).forEach(inv => {
+				html += this.render_invoice_list_item(inv);
+			});
+		}
+		
+		if (!html) {
+			html = '<div class="empty-state">No sales found</div>';
+		}
+		
+		$('#sales-content').html(html);
+		this.bind_list_item_clicks();
+	}
+	
+	render_job_list_item(job) {
+		const status_class = 'status-' + job.status.toLowerCase().replace(/ /g, '-');
+		return `
+			<div class="list-item" data-doctype="Job Card" data-name="${job.name}">
+				<div class="list-item-content">
+					<div class="list-item-title">${job.name}</div>
+					<div class="list-item-details">
+						<span>${job.customer || '-'}</span>
+						<span>${job.vehicle || '-'}</span>
+					</div>
+				</div>
+				<div class="list-item-meta">
+					<span class="status-badge ${status_class}">${job.status}</span>
+				</div>
+			</div>
+		`;
+	}
+	
+	render_appointment_list_item(apt) {
+		const status_class = 'status-' + apt.status.toLowerCase().replace(/-/g, '-');
+		const time = apt.scheduled_start ? frappe.datetime.str_to_user(apt.scheduled_start) : '-';
+		return `
+			<div class="list-item" data-doctype="Service Appointment" data-name="${apt.name}">
+				<div class="list-item-content">
+					<div class="list-item-title">${apt.name}</div>
+					<div class="list-item-details">
+						<span>${apt.customer || '-'}</span>
+						<span>${time}</span>
+					</div>
+				</div>
+				<div class="list-item-meta">
+					<span class="status-badge ${status_class}">${apt.status}</span>
+				</div>
+			</div>
+		`;
+	}
+	
+	render_inspection_list_item(ins) {
+		const date = ins.inspection_date ? frappe.datetime.str_to_user(ins.inspection_date) : '-';
+		const hasJobCard = ins.job_card ? '✅' : '⏳';
+		return `
+			<div class="list-item" data-doctype="Vehicle Inspection" data-name="${ins.name}">
+				<div class="list-item-content">
+					<div class="list-item-title">${ins.name} ${hasJobCard}</div>
+					<div class="list-item-details">
+						<span>${ins.customer || '-'}</span>
+						<span>${ins.vehicle || '-'}</span>
+						<span>${date}</span>
+					</div>
+				</div>
+			</div>
+		`;
+	}
+	
+	render_invoice_list_item(inv, showOutstanding = false) {
+		const amount = showOutstanding && inv.outstanding_amount 
+			? format_currency(inv.outstanding_amount) + ' due'
+			: format_currency(inv.grand_total);
+		const status = inv.status || 'Draft';
+		const status_class = 'status-' + status.toLowerCase().replace(/ /g, '-');
+		return `
+			<div class="list-item" data-doctype="Sales Invoice" data-name="${inv.name}">
+				<div class="list-item-content">
+					<div class="list-item-title">${inv.name}</div>
+					<div class="list-item-details">
+						<span>${inv.customer || '-'}</span>
+						<span>${amount}</span>
+					</div>
+				</div>
+				<div class="list-item-meta">
+					<span class="status-badge ${status_class}">${status}</span>
+				</div>
+			</div>
+		`;
+	}
+	
+	bind_list_item_clicks() {
+		$('.list-item[data-doctype][data-name]').off('click').on('click', function() {
+			const doctype = $(this).data('doctype');
+			const name = $(this).data('name');
+			if (doctype && name) {
+				frappe.set_route('Form', doctype, name);
+			}
 		});
 	}
 	
