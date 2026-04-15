@@ -13,6 +13,8 @@
   "job_card",
   "inspection_date",
   "inspector",
+  "section_estimates",
+  "estimated_total",
   "section_break_1",
   "inspection_items"
  ],
@@ -66,6 +68,18 @@
    "options": "User"
   },
   {
+   "fieldname": "section_estimates",
+   "fieldtype": "Section Break",
+   "label": "Estimates"
+  },
+  {
+   "description": "Sum of optional line Est. Price values (for inspection planning)",
+   "fieldname": "estimated_total",
+   "fieldtype": "Currency",
+   "label": "Estimated Total",
+   "read_only": 1
+  },
+  {
    "fieldname": "section_break_1",
    "fieldtype": "Section Break",
    "label": "Inspection Items"
@@ -98,6 +112,14 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 0,
+   "export": 0,
+   "print": 1,
+   "read": 1,
+   "report": 0,
+   "role": "Workshop Customer"
   }
  ],
  "sort_field": "modified",

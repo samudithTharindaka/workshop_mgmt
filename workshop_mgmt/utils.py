@@ -12,11 +12,11 @@ def on_session_creation(login_manager):
 
 @frappe.whitelist()
 def get_dashboard_link():
-	"""Return the dashboard link for quick access"""
+	"""Return the workspace link for quick access"""
 	return {
-		"page": "garage-dashboard",
-		"label": "Garage Dashboard",
-		"description": "Workshop management dashboard with real-time KPIs"
+		"page": "Workspaces",
+		"label": "Workshop Management",
+		"description": "Open the Workshop Management workspace"
 	}
 
 

@@ -62,6 +62,13 @@
    "options": "Service Appointment"
   },
   {
+   "fieldname": "inspection",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Vehicle Inspection",
+   "options": "Vehicle Inspection"
+  },
+  {
    "fieldname": "posting_date",
    "fieldtype": "Date",
    "label": "Posting Date",
@@ -92,7 +99,8 @@
    "in_list_view": 1,
    "label": "Status",
    "options": "Draft\nChecked In\nInspected\nEstimated\nApproved\nIn Progress\nReady to Invoice\nInvoiced\nClosed\nCancelled",
-   "default": "Draft"
+   "default": "Draft",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_2",
@@ -171,6 +179,14 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "email": 0,
+   "export": 0,
+   "print": 1,
+   "read": 1,
+   "report": 0,
+   "role": "Workshop Customer"
   }
  ],
  "sort_field": "modified",

@@ -1,8 +1,135 @@
 // Copyright (c) 2025, Infoney and contributors
 // For license information, please see license.txt
 
+function call_create_job_card_from_inspection(args, on_success) {
+	const method_chain = [
+		"workshop_mgmt.api.create_job_card_from_inspection",
+		"workshop_mgmt.workshop_management.vehicle_inspection_jobs.create_job_card_from_inspection",
+	];
+
+	const try_method = (index) => {
+		if (index >= method_chain.length) {
+			return;
+		}
+
+		frappe.call({
+			method: method_chain[index],
+			args,
+			freeze: true,
+			freeze_message: __("Creating Job Card..."),
+			callback(r) {
+				if (r.message) {
+					on_success(r.message);
+				}
+			},
+			error(err) {
+				const msg = (err && err.message) || "";
+				const missing_method =
+					msg.includes("Failed to get method for command") ||
+					msg.includes("has no attribute");
+				if (missing_method && index < method_chain.length - 1) {
+					try_method(index + 1);
+				}
+			},
+		});
+	};
+
+	try_method(0);
+}
+
+function open_create_job_card_from_inspection_dialog(frm) {
+	const d = new frappe.ui.Dialog({
+		title: __("Create Job Card from inspection"),
+		fields: [
+			{
+				fieldname: "company",
+				fieldtype: "Link",
+				label: __("Company"),
+				options: "Company",
+				reqd: 1,
+				default: frappe.defaults.get_user_default("Company"),
+			},
+			{
+				fieldname: "warehouse",
+				fieldtype: "Link",
+				label: __("Warehouse"),
+				options: "Warehouse",
+				reqd: 1,
+				get_query: function () {
+					const company = d.get_value("company");
+					if (!company) {
+						return { filters: { is_group: 0 } };
+					}
+					return {
+						filters: {
+							company: company,
+							is_group: 0,
+						},
+					};
+				},
+			},
+			{
+				fieldname: "populate_from_recommendations",
+				fieldtype: "Check",
+				label: __("Fill lines from inspection recommendations"),
+				default: 1,
+				description: __(
+					"Adds each Recommended Service (non-stock) as a service line, stock items as parts, and BOM components when a default BOM exists for a service."
+				),
+			},
+		],
+		primary_action_label: __("Create"),
+		primary_action(values) {
+			d.hide();
+			call_create_job_card_from_inspection(
+				{
+					inspection: frm.doc.name,
+					company: values.company,
+					warehouse: values.warehouse,
+					populate_from_recommendations: values.populate_from_recommendations ? 1 : 0,
+				},
+				(job_card) => frappe.set_route("Form", "Job Card", job_card)
+			);
+		},
+	});
+	d.show();
+}
+
+function load_standard_checklist(frm) {
+	const apply = () => {
+		frappe.call({
+			method: "workshop_mgmt.workshop_management.vehicle_inspection_template.get_standard_vehicle_inspection_checklist",
+			callback: (r) => {
+				if (!r.message || !r.message.length) {
+					return;
+				}
+				frm.clear_table("inspection_items");
+				r.message.forEach((row) => {
+					const d = frm.add_child("inspection_items");
+					d.section = row.section;
+					d.check_item = row.check_item;
+					d.status = "N/A";
+				});
+				frm.refresh_field("inspection_items");
+				recalc_inspection_estimated_total(frm);
+			},
+		});
+	};
+	if (frm.doc.inspection_items && frm.doc.inspection_items.length) {
+		frappe.confirm(__("Replace existing inspection rows with the standard checklist?"), apply);
+	} else {
+		apply();
+	}
+}
+
 frappe.ui.form.on("Vehicle Inspection", {
 	refresh(frm) {
+		frm.set_query("recommended_service", "inspection_items", () => ({
+			filters: {
+				disabled: 0,
+				is_sales_item: 1,
+			},
+		}));
 		// Filter vehicle by customer
 		frm.set_query("vehicle", function() {
 			if (frm.doc.customer) {
@@ -31,51 +158,22 @@ frappe.ui.form.on("Vehicle Inspection", {
 			};
 		});
 		
-		// Add button to create Job Card from inspection
-		if (frm.doc.name && !frm.doc.job_card && !frm.is_new()) {
-			frm.add_custom_button(__("Create Job Card"), function() {
-				// Show company selection dialog
-				let d = new frappe.ui.Dialog({
-					title: __("Select Company"),
-					fields: [
-						{
-							fieldname: "company",
-							fieldtype: "Link",
-							label: __("Company"),
-							options: "Company",
-							reqd: 1,
-							default: frappe.defaults.get_user_default("Company")
-						},
-						{
-							fieldname: "warehouse",
-							fieldtype: "Link",
-							label: __("Warehouse"),
-							options: "Warehouse",
-							reqd: 1,
-							get_query: function() {
-								return {
-									filters: {
-										company: d.get_value("company"),
-										is_group: 0
-									}
-								};
-							}
-						}
-					],
-					primary_action_label: __("Create"),
-					primary_action: function(values) {
-						d.hide();
-						frappe.new_doc("Job Card", {
-							customer: frm.doc.customer,
-							vehicle: frm.doc.vehicle,
-							appointment: frm.doc.appointment,
-							company: values.company,
-							warehouse: values.warehouse
-						});
-					}
-				});
-				d.show();
-			}, __("Create"));
+		frm.add_custom_button(__("Load standard checklist"), () => load_standard_checklist(frm), __("Checklist"));
+
+		if (frm.doc.name && !frm.is_new()) {
+			if (frm.doc.job_card) {
+				frm.add_custom_button(__("Open Job Card"), function () {
+					frappe.set_route("Form", "Job Card", frm.doc.job_card);
+				}, __("Job Card"));
+			} else {
+				frm.add_custom_button(
+					__("Create Job Card"),
+					function () {
+						open_create_job_card_from_inspection_dialog(frm);
+					},
+					__("Job Card")
+				);
+			}
 		}
 	},
 	
@@ -124,4 +222,22 @@ frappe.ui.form.on("Vehicle Inspection", {
 			});
 		}
 	}
+});
+
+function recalc_inspection_estimated_total(frm) {
+	let total = 0;
+	(frm.doc.inspection_items || []).forEach((row) => {
+		total += flt(row.estimated_price);
+	});
+	frm.set_value("estimated_total", total);
+}
+
+frappe.ui.form.on("Inspection Item", {
+	estimated_price(frm) {
+		recalc_inspection_estimated_total(frm);
+	},
+});
+
+frappe.ui.form.on("Inspection Item", "inspection_items_remove", function (frm) {
+	recalc_inspection_estimated_total(frm);
 });

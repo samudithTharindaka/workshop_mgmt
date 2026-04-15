@@ -64,9 +64,6 @@ app_include_js = [
 # home_page = "login"
 
 # website user home page (by Role)
-role_home_page = {
-	"System Manager": "garage-dashboard"
-}
 
 # Add garage dashboard link to desk
 on_session_creation = "workshop_mgmt.utils.on_session_creation"
@@ -90,7 +87,8 @@ on_session_creation = "workshop_mgmt.utils.on_session_creation"
 # ------------
 
 # before_install = "workshop_mgmt.install.before_install"
-# after_install = "workshop_mgmt.install.after_install"
+after_install = "workshop_mgmt.install.after_install"
+after_migrate = "workshop_mgmt.install.after_migrate"
 
 # Boot session - import whitelisted methods
 boot_session = "workshop_mgmt.startup.boot_session"
@@ -184,9 +182,10 @@ boot_session = "workshop_mgmt.startup.boot_session"
 # Overriding Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "workshop_mgmt.event.get_events"
-# }
+override_whitelisted_methods = {
+	"workshop_mgmt.api.create_job_card_from_inspection": "workshop_mgmt.workshop_management.vehicle_inspection_jobs.create_job_card_from_inspection",
+	"workshop_mgmt.workshop_management.doctype.vehicle_inspection.vehicle_inspection.create_job_card_from_inspection": "workshop_mgmt.workshop_management.vehicle_inspection_jobs.create_job_card_from_inspection",
+}
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,

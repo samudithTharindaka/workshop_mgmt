@@ -1,0 +1,158 @@
+{
+ "charts": [
+  {
+   "chart_name": "Job Card Status Distribution",
+   "label": "Job Card Status Distribution"
+  },
+  {
+   "chart_name": "Appointment Status Distribution",
+   "label": "Appointment Status Distribution"
+  }
+ ],
+ "content": "[{\"id\":\"wdb1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Workshop Dashboard</span>\",\"col\":12}},{\"id\":\"wdb2\",\"type\":\"paragraph\",\"data\":{\"text\":\"Manager summary view. Use <b>Customize</b> to change cards/charts.\",\"col\":12}},{\"id\":\"wdb3\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Open Job Cards\",\"col\":3}},{\"id\":\"wdb4\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Ready to Invoice Jobs\",\"col\":3}},{\"id\":\"wdb5\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Today's Appointments\",\"col\":3}},{\"id\":\"wdb6\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"This Month Revenue\",\"col\":3}},{\"id\":\"wdb7\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Job Card Status Distribution\",\"col\":6}},{\"id\":\"wdb8\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Appointment Status Distribution\",\"col\":6}},{\"id\":\"wdb9\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"wdb10\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Job Card\",\"col\":3}},{\"id\":\"wdb11\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Service Appointment\",\"col\":3}},{\"id\":\"wdb12\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Vehicle\",\"col\":3}},{\"id\":\"wdb13\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer\",\"col\":3}},{\"id\":\"wdb14\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"wdb15\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations\",\"col\":4}},{\"id\":\"wdb16\",\"type\":\"card\",\"data\":{\"card_name\":\"Records\",\"col\":4}},{\"id\":\"wdb17\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
+ "creation": "2026-04-13 00:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "dashboard",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "Workshop Dashboard",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Operations",
+   "link_count": 2,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Job Card",
+   "link_count": 0,
+   "link_to": "Job Card",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Service Appointment",
+   "link_count": 0,
+   "link_to": "Service Appointment",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Records",
+   "link_count": 2,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Customer",
+   "link_count": 0,
+   "link_to": "Customer",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Vehicle",
+   "link_count": 0,
+   "link_to": "Vehicle",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Reports",
+   "link_count": 1,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Job Cards by Status",
+   "link_count": 0,
+   "link_to": "Job Cards by Status",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-04-13 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Workshop Management",
+ "name": "Workshop Dashboard",
+ "number_cards": [
+  {
+   "number_card_name": "Open Job Cards",
+   "label": "Open Job Cards"
+  },
+  {
+   "number_card_name": "Ready to Invoice Jobs",
+   "label": "Ready to Invoice Jobs"
+  },
+  {
+   "number_card_name": "Today's Appointments",
+   "label": "Today's Appointments"
+  },
+  {
+   "number_card_name": "This Month Revenue",
+   "label": "This Month Revenue"
+  }
+ ],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 11.0,
+ "shortcuts": [
+  {
+   "color": "Orange",
+   "doc_view": "List",
+   "label": "Job Card",
+   "link_to": "Job Card",
+   "type": "DocType"
+  },
+  {
+   "color": "Purple",
+   "doc_view": "List",
+   "label": "Service Appointment",
+   "link_to": "Service Appointment",
+   "type": "DocType"
+  },
+  {
+   "color": "Green",
+   "doc_view": "List",
+   "label": "Vehicle",
+   "link_to": "Vehicle",
+   "type": "DocType"
+  },
+  {
+   "color": "Blue",
+   "doc_view": "List",
+   "label": "Customer",
+   "link_to": "Customer",
+   "type": "DocType"
+  }
+ ],
+ "title": "Workshop Dashboard"
+}

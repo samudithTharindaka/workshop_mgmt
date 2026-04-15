@@ -5,5 +5,36 @@ def boot_session(bootinfo):
     """Import modules to register whitelisted methods"""
     # Import api module to register whitelisted functions
     import workshop_mgmt.api
-    import workshop_mgmt.workshop_management.page.garage_dashboard.garage_dashboard
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

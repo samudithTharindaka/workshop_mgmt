@@ -1,0 +1,19 @@
+{
+ "creation": "2026-04-13 00:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Number Card",
+ "document_type": "Job Card",
+ "filters_json": "[[\"Job Card\",\"status\",\"=\",\"Ready to Invoice\"],[\"Job Card\",\"sales_invoice\",\"is\",\"not set\"]]",
+ "function": "Count",
+ "is_public": 1,
+ "is_standard": 1,
+ "label": "Ready to Invoice Jobs",
+ "modified": "2026-04-13 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Workshop Management",
+ "name": "Ready to Invoice Jobs",
+ "owner": "Administrator",
+ "show_percentage_stats": 1,
+ "stats_time_interval": "Weekly",
+ "type": "Document Type"
+}

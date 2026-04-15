@@ -24,6 +24,17 @@ frappe.ui.form.on("Job Card", {
 				};
 			}
 		});
+
+		frm.set_query("inspection", function () {
+			const filters = {};
+			if (frm.doc.customer) {
+				filters.customer = frm.doc.customer;
+			}
+			if (frm.doc.vehicle) {
+				filters.vehicle = frm.doc.vehicle;
+			}
+			return { filters };
+		});
 		
 		// Add Create Quotation button
 		if (["Inspected", "Estimated"].includes(frm.doc.status) && !frm.doc.quotation) {
@@ -106,6 +117,12 @@ frappe.ui.form.on("Job Card", {
 				frappe.set_route("Form", "Service Appointment", frm.doc.appointment);
 			}, __("View"));
 		}
+
+		if (frm.doc.inspection) {
+			frm.add_custom_button(__("View Inspection"), function () {
+				frappe.set_route("Form", "Vehicle Inspection", frm.doc.inspection);
+			}, __("View"));
+		}
 		
 		if (frm.doc.quotation) {
 			frm.add_custom_button(__("View Quotation"), function() {
@@ -137,6 +154,29 @@ frappe.ui.form.on("Job Card", {
 					}
 				}
 			});
+		}
+	},
+
+	inspection(frm) {
+		if (frm.doc.inspection) {
+			frappe.db.get_value(
+				"Vehicle Inspection",
+				frm.doc.inspection,
+				["customer", "vehicle", "appointment"],
+				(r) => {
+					if (r) {
+						if (r.customer) {
+							frm.set_value("customer", r.customer);
+						}
+						if (r.vehicle) {
+							frm.set_value("vehicle", r.vehicle);
+						}
+						if (r.appointment) {
+							frm.set_value("appointment", r.appointment);
+						}
+					}
+				}
+			);
 		}
 	},
 	

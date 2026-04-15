@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"w1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Workshop Management</span>\",\"col\":12}},{\"id\":\"w2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Garage Dashboard\",\"col\":3}},{\"id\":\"w3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"w4\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations\",\"col\":4}},{\"id\":\"w5\",\"type\":\"card\",\"data\":{\"card_name\":\"Records\",\"col\":4}},{\"id\":\"w6\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
+ "content": "[{\"id\":\"w1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Workshop Management</span>\",\"col\":12}},{\"id\":\"w2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Workshop Dashboard\",\"col\":3}},{\"id\":\"w2a\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Garage Business Dashboard\",\"col\":3}},{\"id\":\"w3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Job Card\",\"col\":3}},{\"id\":\"w4\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"w5\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations\",\"col\":4}},{\"id\":\"w6\",\"type\":\"card\",\"data\":{\"card_name\":\"Records\",\"col\":4}},{\"id\":\"w7\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
  "creation": "2025-01-03 00:00:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
@@ -15,9 +15,19 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Garage Dashboard",
+   "label": "Workshop Dashboard",
    "link_count": 0,
-   "link_to": "garage-dashboard",
+   "link_to": "Workshop Dashboard",
+   "link_type": "Workspace",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Garage Business Dashboard",
+   "link_count": 0,
+   "link_to": "garage-business-dashboard",
    "link_type": "Page",
    "onboard": 0,
    "type": "Link"
@@ -64,9 +74,19 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Records",
-   "link_count": 1,
+   "link_count": 2,
    "onboard": 0,
    "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Customer",
+   "link_count": 0,
+   "link_to": "Customer",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -110,10 +130,17 @@
  "sequence_id": 10.0,
  "shortcuts": [
   {
-   "color": "#FF6B35",
+   "color": "#4C6FFF",
    "doc_view": "",
-   "label": "Garage Dashboard",
-   "link_to": "garage-dashboard",
+   "label": "Workshop Dashboard",
+   "link_to": "Workshop Dashboard",
+   "type": "Workspace"
+  },
+  {
+   "color": "Orange",
+   "doc_view": "",
+   "label": "Garage Business Dashboard",
+   "link_to": "garage-business-dashboard",
    "type": "Page"
   },
   {
@@ -121,6 +148,13 @@
    "doc_view": "List",
    "label": "Job Card",
    "link_to": "Job Card",
+   "type": "DocType"
+  },
+  {
+   "color": "Blue",
+   "doc_view": "List",
+   "label": "Customer",
+   "link_to": "Customer",
    "type": "DocType"
   },
   {
@@ -140,6 +174,3 @@
  ],
  "title": "Workshop Management"
 }
-
-
-

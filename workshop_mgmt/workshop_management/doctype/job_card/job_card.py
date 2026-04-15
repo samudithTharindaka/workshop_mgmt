@@ -13,14 +13,31 @@ class JobCard(Document):
 		self.validate_duplicate_invoice()
 		self.calculate_amounts()
 		self.fetch_from_appointment()
+		self.fetch_from_inspection()
 	
 	def after_insert(self):
-		"""Link job card back to the appointment"""
+		"""Link job card back to the appointment and inspection"""
 		self.update_appointment_link()
-	
+		self.sync_inspection_job_card_link()
+
 	def on_update(self):
 		"""Update appointment link when job card is modified"""
 		self.update_appointment_link()
+		self.sync_inspection_job_card_link()
+
+	def sync_inspection_job_card_link(self):
+		"""Set Vehicle Inspection.job_card to this Job Card when linked."""
+		if not self.inspection:
+			return
+		current = frappe.db.get_value("Vehicle Inspection", self.inspection, "job_card")
+		if current != self.name:
+			frappe.db.set_value(
+				"Vehicle Inspection",
+				self.inspection,
+				"job_card",
+				self.name,
+				update_modified=False,
+			)
 	
 	def fetch_from_appointment(self):
 		"""Fetch customer and vehicle from appointment if set"""
@@ -34,6 +51,25 @@ class JobCard(Document):
 					self.vehicle = appointment.vehicle
 				if not self.service_advisor and appointment.service_advisor:
 					self.service_advisor = appointment.service_advisor
+
+	def fetch_from_inspection(self):
+		"""Fill header links from Vehicle Inspection when set (e.g. manual link on Job Card)."""
+		if not self.inspection:
+			return
+		row = frappe.db.get_value(
+			"Vehicle Inspection",
+			self.inspection,
+			["customer", "vehicle", "appointment"],
+			as_dict=True,
+		)
+		if not row:
+			return
+		if not self.customer and row.customer:
+			self.customer = row.customer
+		if not self.vehicle and row.vehicle:
+			self.vehicle = row.vehicle
+		if not self.appointment and row.appointment:
+			self.appointment = row.appointment
 	
 	def update_appointment_link(self):
 		"""Update the job_card field in the linked Service Appointment"""
@@ -49,10 +85,20 @@ class JobCard(Document):
 					"status", "In Progress", update_modified=False)
 	
 	def on_trash(self):
-		"""Clear job card link from appointment when deleted"""
+		"""Clear job card link from appointment and inspection when deleted"""
 		if self.appointment:
 			frappe.db.set_value("Service Appointment", self.appointment, 
 				"job_card", None, update_modified=False)
+		if self.inspection:
+			linked = frappe.db.get_value("Vehicle Inspection", self.inspection, "job_card")
+			if linked == self.name:
+				frappe.db.set_value(
+					"Vehicle Inspection",
+					self.inspection,
+					"job_card",
+					None,
+					update_modified=False,
+				)
 	
 	def validate_vehicle_customer_match(self):
 		"""Ensure vehicle belongs to the customer"""
@@ -81,6 +127,7 @@ class JobCard(Document):
 	@frappe.whitelist()
 	def create_quotation(self):
 		"""Create Quotation from Job Card"""
+		self.check_permission("write")
 		# Validate items exist
 		if not self.service_items and not self.part_items:
 			frappe.throw(_("Please add at least one service or part item"))
@@ -119,6 +166,7 @@ class JobCard(Document):
 	@frappe.whitelist()
 	def create_sales_invoice(self):
 		"""Create Sales Invoice from Job Card with Update Stock"""
+		self.check_permission("write")
 		# Validate status
 		if self.status not in ["Approved", "Ready to Invoice"]:
 			frappe.throw(_("Job Card must be Approved or Ready to Invoice to create Sales Invoice"))

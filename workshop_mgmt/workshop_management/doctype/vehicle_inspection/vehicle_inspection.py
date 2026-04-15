@@ -3,15 +3,20 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.utils import flt
 
 
 class VehicleInspection(Document):
 	def validate(self):
-		"""Fetch vehicle and customer from linked documents"""
+		"""Fetch vehicle and customer from linked documents; sum optional line estimates."""
 		# Fetch from Job Card if set
 		if self.job_card:
-			job_card = frappe.db.get_value("Job Card", self.job_card, 
-				["vehicle", "customer", "appointment"], as_dict=True)
+			job_card = frappe.db.get_value(
+				"Job Card",
+				self.job_card,
+				["vehicle", "customer", "appointment"],
+				as_dict=True,
+			)
 			if job_card:
 				if not self.vehicle:
 					self.vehicle = job_card.vehicle
@@ -29,7 +34,29 @@ class VehicleInspection(Document):
 					self.vehicle = appointment.vehicle
 				if not self.customer:
 					self.customer = appointment.customer
-	
+
+		total = sum(flt(r.estimated_price) for r in (self.inspection_items or []))
+		self.estimated_total = total
+
+	def get_inspection_results(self):
+		"""Structured rows for integrations / printing (check_item, status, notes, recommended service, optional price)."""
+		out = []
+		for r in self.inspection_items or []:
+			rec_item = r.recommended_service or None
+			rec_name = frappe.db.get_value("Item", rec_item, "item_name") if rec_item else None
+			out.append(
+				{
+					"section": r.section,
+					"check_item": r.check_item,
+					"status": r.status,
+					"notes": r.notes or "",
+					"recommended_service": rec_item,
+					"recommended_service_name": rec_name,
+					"estimated_price": flt(r.estimated_price) if r.estimated_price else None,
+				}
+			)
+		return out
+
 	def after_insert(self):
 		"""Link inspection back to the appointment"""
 		self.update_appointment_link()
@@ -53,3 +80,11 @@ class VehicleInspection(Document):
 		if self.appointment:
 			frappe.db.set_value("Service Appointment", self.appointment, 
 				"inspection", None, update_modified=False)
+
+
+@frappe.whitelist()
+def get_vehicle_inspection_results(name):
+	"""Return inspection line items as a list of dicts (check_item, status, notes, recommended_service, estimated_price, section)."""
+	doc = frappe.get_doc("Vehicle Inspection", name)
+	doc.check_permission("read")
+	return doc.get_inspection_results()

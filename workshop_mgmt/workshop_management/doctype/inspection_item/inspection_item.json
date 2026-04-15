@@ -4,12 +4,23 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "section",
   "check_item",
-  "result",
+  "status",
   "notes",
+  "recommended_service",
+  "estimated_price",
+  "column_break_1",
   "photo"
  ],
  "fields": [
+  {
+   "fieldname": "section",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Section",
+   "options": "Engine & Fluids\nBraking System\nTires & Wheels\nBattery & Electrical\nSuspension & Steering\nExterior & Interior"
+  },
   {
    "fieldname": "check_item",
    "fieldtype": "Data",
@@ -18,17 +29,34 @@
    "reqd": 1
   },
   {
-   "fieldname": "result",
+   "default": "N/A",
+   "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
-   "label": "Result",
-   "options": "OK\nAttention\nCritical",
-   "reqd": 1
+   "label": "Status",
+   "options": "OK\nGood\nFair\nWorn\nNeeds Attention\nCritical\nN/A"
   },
   {
    "fieldname": "notes",
    "fieldtype": "Small Text",
    "label": "Notes"
+  },
+  {
+   "fieldname": "recommended_service",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Recommended Service",
+   "options": "Item"
+  },
+  {
+   "fieldname": "estimated_price",
+   "fieldtype": "Currency",
+   "label": "Est. Price",
+   "description": "Optional estimated price for recommended work"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "photo",
@@ -39,7 +67,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-01-02 12:00:00.000000",
+ "modified": "2026-04-15 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Workshop Management",
  "name": "Inspection Item",
@@ -49,7 +77,3 @@
  "sort_order": "DESC",
  "states": []
 }
-
-
-
-
