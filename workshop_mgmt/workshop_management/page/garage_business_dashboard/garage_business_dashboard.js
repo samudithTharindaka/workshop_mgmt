@@ -465,5 +465,7 @@ function mountFallbackDashboard(wrapper) {
 }
 
 frappe.pages["garage-business-dashboard"].on_page_load = function (wrapper) {
-	window.location.href = "/garage-dashboard-center";
+	ensureVue()
+		.then(() => mountGarageDashboard(wrapper))
+		.catch(() => mountFallbackDashboard(wrapper));
 };

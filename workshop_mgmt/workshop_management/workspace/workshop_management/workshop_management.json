@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"w1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Workshop Management</span>\",\"col\":12}},{\"id\":\"w2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Workshop Dashboard\",\"col\":3}},{\"id\":\"w2a\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Garage Business Dashboard\",\"col\":3}},{\"id\":\"w3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Job Card\",\"col\":3}},{\"id\":\"w4\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"w5\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations\",\"col\":4}},{\"id\":\"w6\",\"type\":\"card\",\"data\":{\"card_name\":\"Records\",\"col\":4}},{\"id\":\"w7\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
+ "content": "[{\"id\":\"w1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Workshop Management</span>\",\"col\":12}},{\"id\":\"w2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Workshop Dashboard\",\"col\":3}},{\"id\":\"w2a\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Garage Business Dashboard\",\"col\":3}},{\"id\":\"w2p\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Workshop Portal\",\"col\":3}},{\"id\":\"w3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Job Card\",\"col\":3}},{\"id\":\"w4\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"w5\",\"type\":\"card\",\"data\":{\"card_name\":\"Operations\",\"col\":4}},{\"id\":\"w6\",\"type\":\"card\",\"data\":{\"card_name\":\"Records\",\"col\":4}},{\"id\":\"w7\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
  "creation": "2025-01-03 00:00:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
@@ -117,7 +117,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-01-03 00:00:00.000000",
+ "modified": "2026-04-23 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Workshop Management",
  "name": "Workshop Management",
@@ -142,6 +142,13 @@
    "label": "Garage Business Dashboard",
    "link_to": "garage-business-dashboard",
    "type": "Page"
+  },
+  {
+   "color": "Cyan",
+   "doc_view": "",
+   "label": "Workshop Portal",
+   "type": "URL",
+   "url": "/workshop"
   },
   {
    "color": "Orange",

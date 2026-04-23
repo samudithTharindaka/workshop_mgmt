@@ -5,7 +5,8 @@ import frappe
 from frappe import _
 from frappe.utils import cint, flt
 
-_FLAG_STATUSES = frozenset({"Worn", "Critical", "Needs Attention", "Fair"})
+# Inspection lines that should appear on the Job Card complaint summary
+_INSPECTION_COMPLAINT_STATUSES = frozenset({"Needs Attention", "Critical"})
 
 
 def _item_rate(item_code: str) -> float:
@@ -37,18 +38,28 @@ def _bom_part_quantities(bom_name: str) -> dict[str, float]:
 
 
 def _build_complaint_summary_from_inspection(doc) -> str:
-	lines = []
+	"""Only rows marked Needs Attention or Critical; include section, item, status, and notes."""
+	lines: list[str] = []
 	for r in doc.inspection_items or []:
-		if not (r.check_item or r.notes or r.recommended_service):
+		st = (r.status or "").strip()
+		if st not in _INSPECTION_COMPLAINT_STATUSES:
 			continue
-		if r.status in _FLAG_STATUSES or (r.notes and r.notes.strip()) or r.recommended_service:
-			bit = (r.check_item or _("(no label)")).strip()
-			if r.status:
-				bit += f" — {r.status}"
-			if r.notes and r.notes.strip():
-				bit += f" ({r.notes.strip()})"
-			lines.append(bit)
-	return "\n".join(lines[:30])
+		sec = (r.section or "").strip()
+		item = (r.check_item or "").strip()
+		if sec and item:
+			label = f"{sec} — {item}"
+		elif item:
+			label = item
+		elif sec:
+			label = sec
+		else:
+			label = _("(no label)")
+		block = f"{label} — {st}"
+		notes = (r.notes or "").strip()
+		if notes:
+			block += f"\n{notes}"
+		lines.append(block)
+	return "\n\n".join(lines[:50])
 
 
 def _populate_job_lines_from_inspection(jc, inspection_doc, company: str):

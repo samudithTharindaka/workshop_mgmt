@@ -68,6 +68,12 @@ app_include_js = [
 # Add garage dashboard link to desk
 on_session_creation = "workshop_mgmt.utils.on_session_creation"
 
+# Vue workshop portal (sales / service front-end, same idea as order_picking)
+website_route_rules = [
+	{"from_route": "/workshop/<path:app_path>", "to_route": "workshop_portal"},
+	{"from_route": "/workshop", "to_route": "workshop_portal"},
+]
+
 # Generators
 # ----------
 
