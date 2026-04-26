@@ -1,61 +1,29 @@
 <template>
-	<div
-		class="dash-wrap rounded-2xl border border-slate-800/80 bg-gradient-to-b from-slate-900/95 via-slate-950 to-[#020617] p-5 shadow-2xl"
-	>
-		<div class="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-			<div class="flex items-center gap-3">
-				<div
-					class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-amber-500 text-sm font-bold text-white shadow-lg"
-				>
-					CC
-				</div>
-				<div>
-					<h2 class="text-xl font-bold tracking-tight text-slate-100">Garage dashboard</h2>
-					<p class="text-xs text-slate-500">Real-time operations</p>
-				</div>
+	<div class="mx-auto max-w-7xl space-y-8">
+		<WxBreadcrumb :items="breadcrumbItems" />
+
+		<div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+			<div>
+				<h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Garage dashboard</h2>
+				<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Real-time operations</p>
 			</div>
-			<div class="flex flex-wrap items-center gap-2">
-				<button
-					type="button"
-					class="rounded-full border border-rose-500/40 bg-gradient-to-r from-rose-600/30 to-amber-600/30 px-3 py-1.5 text-xs font-semibold text-slate-100 hover:border-sky-500/50"
-					@click="openModal"
-				>
-					+ New appointment
+			<div class="flex flex-wrap gap-3">
+				<button type="button" class="portal-btn-primary" @click="openModal">
+					<svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+						<path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+					</svg>
+					New appointment
 				</button>
-				<button
-					type="button"
-					class="rounded-full border border-slate-600/80 bg-slate-800/60 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700/80"
-					@click="loadAll"
-				>
-					Refresh
-				</button>
-				<RouterLink
-					to="/appointments"
-					class="rounded-full border border-slate-600/80 bg-slate-800/60 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700/80"
-				>
-					Appointments page
-				</RouterLink>
-				<RouterLink
-					to="/job-cards"
-					class="rounded-full border border-slate-600/80 bg-slate-800/60 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700/80"
-				>
-					Job cards
-				</RouterLink>
-				<RouterLink
-					to="/inspections"
-					class="rounded-full border border-slate-600/80 bg-slate-800/60 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-700/80"
-				>
-					Inspections
-				</RouterLink>
+				<button type="button" class="portal-btn-secondary" @click="loadAll">Refresh</button>
 			</div>
 		</div>
 
-		<div class="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+		<div class="flex flex-wrap gap-2">
 			<a
 				v-for="s in shortcuts"
 				:key="s.href"
 				:href="s.href"
-				class="flex items-center justify-center rounded-lg border border-slate-700/80 bg-slate-900/40 py-2.5 text-center text-xs font-semibold text-slate-200 transition hover:border-sky-500/50 hover:bg-sky-500/10"
+				class="inline-flex min-h-10 items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-sky-300 hover:text-sky-800 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-sky-600/50 dark:hover:text-sky-300"
 			>
 				{{ s.label }}
 			</a>
@@ -63,242 +31,257 @@
 
 		<p
 			v-if="error"
-			class="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200"
+			class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"
 		>
 			{{ error }}
 		</p>
 
-		<div v-if="loading" class="py-16 text-center text-sm text-slate-500">Loading dashboard…</div>
+		<div v-if="loading" class="py-20 text-center text-sm text-slate-600 dark:text-slate-500">Loading dashboard…</div>
 
-		<div v-else class="space-y-5">
-			<!-- KPI row -->
-			<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+		<div v-else class="space-y-6">
+			<!-- KPI -->
+			<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<div
 					v-for="c in kpiCards"
 					:key="c.label"
-					class="rounded-2xl border border-slate-800/90 bg-slate-900/50 p-5 shadow-lg transition hover:-translate-y-0.5"
+					class="portal-card min-h-[7.5rem] transition-shadow hover:shadow-md"
 				>
-					<p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{{ c.label }}</p>
-					<p class="mt-3 text-2xl font-extrabold tabular-nums text-slate-50">{{ c.value }}</p>
-					<p v-if="c.hint" class="mt-1 text-[11px] text-slate-500">{{ c.hint }}</p>
+					<p class="text-xs font-medium tracking-wide text-slate-600 dark:text-slate-500">{{ c.label }}</p>
+					<p class="mt-3 text-3xl font-semibold tabular-nums text-slate-950 dark:text-slate-50">{{ c.value }}</p>
+					<p v-if="c.hint" class="mt-3 text-xs leading-relaxed text-slate-600 dark:text-slate-500">{{ c.hint }}</p>
 				</div>
 			</div>
 
-			<!-- Job status | Top services | Appointments -->
-			<div class="grid grid-cols-1 gap-4 lg:grid-cols-12">
-				<div class="rounded-2xl border border-slate-800/90 bg-slate-900/50 p-5 lg:col-span-5">
-					<h4 class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Job status</h4>
-					<div v-if="!jobStatus.length" class="mt-4 text-sm text-slate-500">No job card data.</div>
-					<div v-else class="mt-3 space-y-2">
-						<div v-for="row in jobStatus" :key="row.status">
-							<div class="flex justify-between text-xs text-slate-300">
-								<span>{{ row.status }}</span>
-								<span class="tabular-nums">{{ row.count }}</span>
-							</div>
-							<div class="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-800">
-								<div
-									class="h-full rounded-full bg-gradient-to-r from-rose-500 to-amber-500"
-									:style="{ width: jobBarPct(row.count) + '%' }"
-								/>
-							</div>
-						</div>
+			<!-- Appointment pulse -->
+			<div class="portal-card">
+				<div class="flex flex-wrap items-end gap-6 border-b border-slate-200/90 dark:border-slate-800/80 pb-4">
+					<div>
+						<p class="text-xs font-medium tracking-wide text-slate-600 dark:text-slate-500">Today</p>
+						<p class="mt-1 text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-100">{{ kpi.today_appointments ?? 0 }}</p>
 					</div>
-				</div>
-				<div class="rounded-2xl border border-slate-800/90 bg-slate-900/50 p-5 lg:col-span-5">
-					<h4 class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Top services (month)</h4>
-					<div v-if="!topServices.length" class="mt-4 text-sm text-slate-500">No service data yet.</div>
-					<div v-else class="mt-3 space-y-2">
-						<div v-for="x in topServices" :key="x.item_code" class="flex justify-between gap-2 text-xs">
-							<span class="truncate text-slate-300">{{ x.item_name }}</span>
-							<span class="shrink-0 font-semibold tabular-nums text-slate-200">{{ money(x.amount) }}</span>
-						</div>
+					<div>
+						<p class="text-xs text-slate-600 dark:text-slate-500">In progress</p>
+						<p class="mt-1 text-lg font-medium tabular-nums text-slate-800 dark:text-slate-200">{{ kpi.in_progress_appointments ?? 0 }}</p>
 					</div>
-				</div>
-				<div class="rounded-2xl border border-slate-800/90 bg-slate-900/50 p-5 lg:col-span-2">
-					<h4 class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Appointments</h4>
-					<p class="mt-3 text-3xl font-extrabold tabular-nums text-slate-50">{{ kpi.today_appointments ?? 0 }}</p>
-					<p class="mt-1 text-[11px] text-slate-500">Today (count)</p>
-					<div class="mt-3 space-y-1.5 text-xs text-slate-400">
-						<div class="flex justify-between">
-							<span>In progress</span>
-							<span class="tabular-nums text-slate-200">{{ kpi.in_progress_appointments ?? 0 }}</span>
-						</div>
-						<div class="flex justify-between">
-							<span>Upcoming</span>
-							<span class="tabular-nums text-slate-200">{{ kpi.upcoming_appointments ?? 0 }}</span>
-						</div>
-						<div class="flex justify-between border-t border-slate-800/80 pt-2 text-[11px]">
-							<span>Month completion</span>
-							<span class="text-sky-400">{{ formatPct(kpi.completion_rate) }}</span>
-						</div>
+					<div>
+						<p class="text-xs text-slate-600 dark:text-slate-500">Upcoming</p>
+						<p class="mt-1 text-lg font-medium tabular-nums text-slate-800 dark:text-slate-200">{{ kpi.upcoming_appointments ?? 0 }}</p>
 					</div>
-					<p class="mt-4 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Next appointments</p>
-					<div class="mt-2 space-y-1.5">
-						<div
-							v-for="x in upcomingApptDisplay"
-							:key="x.key"
-							class="flex justify-between gap-2 text-xs text-slate-400"
-						>
-							<span class="truncate">{{ x.left }}</span>
-							<span class="shrink-0 tabular-nums">{{ x.right }}</span>
-						</div>
+					<div class="min-w-[8rem]">
+						<p class="text-xs text-slate-600 dark:text-slate-500">Month completion</p>
+						<p class="mt-1 text-lg font-medium text-blue-600 dark:text-blue-400">{{ formatPct(kpi.completion_rate) }}</p>
 					</div>
 				</div>
 			</div>
 
-			<!-- Appointment status + revenue trend -->
-			<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-				<div class="rounded-2xl border border-slate-800/90 bg-slate-900/50 p-5">
-					<h4 class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Appointment status mix</h4>
-					<div v-if="!appointmentStatus.length" class="mt-4 text-sm text-slate-500">No data.</div>
-					<ul v-else class="mt-3 max-h-40 space-y-1.5 overflow-y-auto text-xs">
-						<li v-for="r in appointmentStatus.slice(0, 8)" :key="r.status" class="flex justify-between text-slate-300">
+			<!-- Charts -->
+			<div class="grid gap-4 lg:grid-cols-2">
+				<div class="portal-card">
+					<h4 class="text-xs font-semibold tracking-wide text-slate-600 dark:text-slate-500">Appointment status mix</h4>
+					<div v-if="!appointmentStatus.length" class="mt-4 text-sm text-slate-600 dark:text-slate-500">No data.</div>
+					<ul v-else class="mt-4 max-h-48 space-y-2 overflow-y-auto text-sm">
+						<li v-for="r in appointmentStatus.slice(0, 12)" :key="r.status" class="flex justify-between gap-4 text-slate-700 dark:text-slate-300">
 							<span>{{ r.status }}</span>
-							<span class="tabular-nums font-semibold">{{ r.count }}</span>
+							<span class="tabular-nums font-medium text-slate-900 dark:text-slate-100">{{ r.count }}</span>
 						</li>
 					</ul>
 				</div>
-				<div class="rounded-2xl border border-slate-800/90 bg-slate-900/50 p-5">
-					<h4 class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Revenue trend</h4>
-					<p class="mt-1 text-[10px] text-slate-600">{{ trendStart }} — {{ trendEnd }}</p>
-					<svg class="mt-2 h-28 w-full text-sky-400" viewBox="0 0 600 120" preserveAspectRatio="none">
-						<polyline :points="sparkFill" fill="rgba(56,189,248,0.08)" stroke="none" />
+				<div class="portal-card">
+					<h4 class="text-xs font-semibold tracking-wide text-slate-600 dark:text-slate-500">Revenue trend</h4>
+					<p class="mt-1 text-xs text-slate-600 dark:text-slate-500">{{ trendStart }} — {{ trendEnd }}</p>
+					<svg class="mt-4 h-32 w-full text-blue-500" viewBox="0 0 600 120" preserveAspectRatio="none">
+						<polyline :points="sparkFill" fill="rgba(59,130,246,0.12)" stroke="none" />
 						<polyline
 							:points="sparkLine"
 							fill="none"
 							stroke="currentColor"
-							stroke-width="2.5"
+							stroke-width="2"
 							vector-effect="non-scaling-stroke"
 						/>
 					</svg>
 				</div>
 			</div>
 
-			<!-- Recent jobs | Top parts -->
-			<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-				<div class="rounded-2xl border border-slate-800/90 bg-slate-900/50 p-5">
-					<h4 class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Recent jobs</h4>
-					<table class="mt-3 w-full text-left text-xs">
-						<tbody>
-							<tr v-for="x in recentJobs" :key="x.name" class="border-b border-slate-800/80">
-								<td class="py-2.5 pr-2">
-									<RouterLink
-										:to="{ path: '/job-cards', query: { open: x.name } }"
-										class="font-mono text-sky-400 hover:underline"
-									>
-										{{ x.name }}
-									</RouterLink>
-								</td>
-								<td class="py-2.5 pr-2 text-slate-400">{{ x.customer || "—" }}</td>
-								<td class="py-2.5">
-									<span class="rounded-full bg-slate-800 px-2 py-0.5 text-[10px]">{{ x.status }}</span>
-								</td>
-							</tr>
-							<tr v-if="!recentJobs.length">
-								<td colspan="3" class="py-6 text-center text-slate-500">No recent jobs</td>
-							</tr>
-						</tbody>
-					</table>
+			<!-- Activity -->
+			<div class="grid gap-4 lg:grid-cols-2">
+				<div class="portal-card flex flex-col">
+					<h4 class="text-xs font-semibold tracking-wide text-slate-600 dark:text-slate-500">Recent jobs</h4>
+					<div class="portal-table-wrap mt-4 max-h-72 flex-1 overflow-y-auto">
+						<table class="portal-table text-xs">
+							<thead>
+								<tr>
+									<th>Job</th>
+									<th>Customer</th>
+									<th>Status</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr v-for="x in recentJobs" :key="x.name">
+									<td class="font-mono">
+										<RouterLink
+											:to="{ name: 'job-card-detail', params: { id: x.name } }"
+											class="text-blue-600 dark:text-blue-400 hover:underline"
+										>
+											{{ x.name }}
+										</RouterLink>
+									</td>
+									<td class="text-slate-600 dark:text-slate-400">{{ x.customer || "—" }}</td>
+									<td>
+										<span class="inline-flex rounded-md bg-slate-200 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-300">{{
+											x.status
+										}}</span>
+									</td>
+								</tr>
+								<tr v-if="!recentJobs.length">
+									<td colspan="3" class="py-8 text-center text-slate-600 dark:text-slate-500">No recent jobs</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
 				</div>
-				<div class="rounded-2xl border border-slate-800/90 bg-slate-900/50 p-5">
-					<h4 class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Top parts (month)</h4>
-					<div v-if="!topParts.length" class="mt-4 text-sm text-slate-500">No parts data yet.</div>
-					<div v-else class="mt-3 space-y-2">
-						<div v-for="x in topParts" :key="x.item_code" class="flex justify-between gap-2 text-xs">
-							<span class="truncate text-slate-300">{{ x.item_name }}</span>
-							<span class="shrink-0 font-semibold tabular-nums text-slate-200">{{ money(x.amount) }}</span>
+				<div class="portal-card flex flex-col">
+					<h4 class="text-xs font-semibold tracking-wide text-slate-600 dark:text-slate-500">Upcoming appointments</h4>
+					<div class="mt-4 max-h-72 flex-1 space-y-2 overflow-y-auto text-sm">
+						<div
+							v-for="x in upcomingApptDisplay"
+							:key="x.key"
+							class="flex justify-between gap-3 rounded-lg border border-slate-200/80 dark:border-slate-800/60 px-3 py-2.5 text-slate-700 dark:text-slate-300 transition hover:bg-slate-200/50 dark:bg-slate-800/30"
+						>
+							<span class="min-w-0 truncate">{{ x.left }}</span>
+							<span class="shrink-0 tabular-nums text-xs text-slate-600 dark:text-slate-500">{{ x.right }}</span>
 						</div>
 					</div>
 				</div>
 			</div>
 
-			<!-- Service appointments table -->
-			<div class="rounded-2xl border border-slate-800/90 bg-slate-900/50 p-5">
-				<h4 class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Service appointments</h4>
-				<div class="mt-3 flex flex-wrap items-center gap-2">
-					<button
-						type="button"
-						class="rounded-full border border-rose-500/40 bg-gradient-to-r from-rose-600/25 to-amber-600/25 px-3 py-1.5 text-xs font-semibold text-slate-100"
-						@click="openModal"
-					>
-						+ New appointment
-					</button>
-					<button
-						type="button"
-						class="rounded-full border px-3 py-1.5 text-xs font-medium transition"
-						:class="
-							apptMode === 'today'
-								? 'border-sky-500/50 bg-sky-500/15 text-sky-200'
-								: 'border-slate-700 bg-slate-800/60 text-slate-300 hover:bg-slate-800'
-						"
-						@click="setApptMode('today')"
-					>
-						Today
-					</button>
-					<button
-						type="button"
-						class="rounded-full border px-3 py-1.5 text-xs font-medium transition"
-						:class="
-							apptMode === 'upcoming'
-								? 'border-sky-500/50 bg-sky-500/15 text-sky-200'
-								: 'border-slate-700 bg-slate-800/60 text-slate-300 hover:bg-slate-800'
-						"
-						@click="setApptMode('upcoming')"
-					>
-						Upcoming
-					</button>
-					<span class="ml-auto text-[11px] text-slate-500">{{ apptHint }}</span>
+			<!-- Operations -->
+			<div class="grid gap-4 lg:grid-cols-3">
+				<div class="portal-card">
+					<h4 class="text-xs font-semibold tracking-wide text-slate-600 dark:text-slate-500">Job status</h4>
+					<div v-if="!jobStatus.length" class="mt-4 text-sm text-slate-600 dark:text-slate-500">No job card data.</div>
+					<div v-else class="mt-4 space-y-3">
+						<div v-for="row in jobStatus" :key="row.status">
+							<div class="flex justify-between text-xs text-slate-600 dark:text-slate-400">
+								<span>{{ row.status }}</span>
+								<span class="tabular-nums font-medium text-slate-800 dark:text-slate-200">{{ row.count }}</span>
+							</div>
+							<div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+								<div
+									class="h-full rounded-full bg-blue-600"
+									:style="{ width: jobBarPct(row.count) + '%' }"
+								/>
+							</div>
+						</div>
+					</div>
 				</div>
-				<table class="mt-4 w-full text-left text-xs">
-					<thead>
-						<tr class="border-b border-slate-800 text-slate-500">
-							<th class="pb-2 font-medium">Appointment</th>
-							<th class="pb-2 font-medium">Customer</th>
-							<th class="pb-2 font-medium">Scheduled start</th>
-							<th class="pb-2 font-medium">Status</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="x in filteredAppointments" :key="x.name" class="border-b border-slate-800/80">
-							<td class="py-2.5 font-mono text-slate-200">{{ x.name }}</td>
-							<td class="py-2.5 text-slate-400">{{ x.customer || "—" }}</td>
-							<td class="py-2.5 text-slate-400">{{ formatDt(x.scheduled_start) }}</td>
-							<td class="py-2.5">
-								<span class="rounded-full px-2 py-0.5 text-[10px]" :class="pillClass(x.status)">{{
-									x.status || "—"
-								}}</span>
-							</td>
-						</tr>
-						<tr v-if="!filteredAppointments.length">
-							<td colspan="4" class="py-8 text-center text-slate-500">No appointments found</td>
-						</tr>
-					</tbody>
-				</table>
+				<div class="portal-card">
+					<h4 class="text-xs font-semibold tracking-wide text-slate-600 dark:text-slate-500">Top services (month)</h4>
+					<div v-if="!topServices.length" class="mt-4 text-sm text-slate-600 dark:text-slate-500">No service data yet.</div>
+					<div v-else class="mt-4 max-h-56 space-y-2 overflow-y-auto text-sm">
+						<div v-for="x in topServices" :key="x.item_code" class="flex justify-between gap-2">
+							<span class="truncate text-slate-700 dark:text-slate-300">{{ x.item_name }}</span>
+							<span class="shrink-0 tabular-nums font-medium text-slate-900 dark:text-slate-100">{{ money(x.amount) }}</span>
+						</div>
+					</div>
+				</div>
+				<div class="portal-card">
+					<h4 class="text-xs font-semibold tracking-wide text-slate-600 dark:text-slate-500">Top parts (month)</h4>
+					<div v-if="!topParts.length" class="mt-4 text-sm text-slate-600 dark:text-slate-500">No parts data yet.</div>
+					<div v-else class="mt-4 max-h-56 space-y-2 overflow-y-auto text-sm">
+						<div v-for="x in topParts" :key="x.item_code" class="flex justify-between gap-2">
+							<span class="truncate text-slate-700 dark:text-slate-300">{{ x.item_name }}</span>
+							<span class="shrink-0 tabular-nums font-medium text-slate-900 dark:text-slate-100">{{ money(x.amount) }}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Appointments table -->
+			<div class="portal-card p-0 overflow-hidden">
+				<div class="flex flex-col gap-4 border-b border-slate-200/90 dark:border-slate-800/80 p-6 sm:flex-row sm:items-center sm:justify-between">
+					<h4 class="text-xs font-semibold tracking-wide text-slate-600 dark:text-slate-500">Service appointments</h4>
+					<div class="flex flex-wrap items-center gap-2">
+						<button
+							type="button"
+							class="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-500"
+							@click="openModal"
+						>
+							+ New
+						</button>
+						<button
+							type="button"
+							class="rounded-lg border px-3 py-1.5 text-xs font-medium transition"
+							:class="
+								apptMode === 'today'
+									? 'border-blue-500/50 bg-blue-600/15 text-blue-700 dark:text-blue-300'
+									: 'border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800/60'
+							"
+							@click="setApptMode('today')"
+						>
+							Today
+						</button>
+						<button
+							type="button"
+							class="rounded-lg border px-3 py-1.5 text-xs font-medium transition"
+							:class="
+								apptMode === 'upcoming'
+									? 'border-blue-500/50 bg-blue-600/15 text-blue-700 dark:text-blue-300'
+									: 'border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800/60'
+							"
+							@click="setApptMode('upcoming')"
+						>
+							Upcoming
+						</button>
+						<span class="text-xs text-slate-600 dark:text-slate-500">{{ apptHint }}</span>
+					</div>
+				</div>
+				<div class="max-h-[28rem] overflow-y-auto">
+					<table class="portal-table text-sm">
+						<thead>
+							<tr>
+								<th>Appointment</th>
+								<th>Customer</th>
+								<th>Scheduled start</th>
+								<th>Status</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="x in filteredAppointments" :key="x.name">
+								<td class="font-mono text-slate-800 dark:text-slate-200">{{ x.name }}</td>
+								<td class="text-slate-600 dark:text-slate-400">{{ x.customer || "—" }}</td>
+								<td class="tabular-nums text-slate-600 dark:text-slate-400">{{ formatDt(x.scheduled_start) }}</td>
+								<td>
+									<span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium" :class="pillClass(x.status)">{{
+										x.status || "—"
+									}}</span>
+								</td>
+							</tr>
+							<tr v-if="!filteredAppointments.length">
+								<td colspan="4" class="py-12 text-center text-slate-600 dark:text-slate-500">No appointments found</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
 			</div>
 		</div>
 
-		<!-- Modal -->
 		<Teleport to="body">
 			<div
 				v-if="modalOpen"
-				class="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+				class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
 				@click.self="modalOpen = false"
 			>
-				<div
-					class="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
-					role="dialog"
-					aria-modal="true"
-				>
-					<h3 class="text-lg font-bold text-slate-100">New service appointment</h3>
-					<p class="mt-1 text-xs text-slate-500">
+				<div class="portal-modal-panel max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true">
+					<h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">New service appointment</h3>
+					<p class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-500">
 						Choose a customer, then one of their vehicles. Lists use your desk permissions.
 					</p>
-					<div class="mt-4 space-y-3">
+					<div class="mt-6 space-y-4">
 						<div>
-							<label class="mb-1 block text-[11px] uppercase text-slate-500">Customer</label>
+							<label class="portal-label">Customer</label>
 							<select
 								v-model="form.customer"
-								class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+								class="portal-input"
 								:disabled="loadingCustomers"
 								@change="onCustomerChange"
 							>
@@ -309,12 +292,8 @@
 							</select>
 						</div>
 						<div>
-							<label class="mb-1 block text-[11px] uppercase text-slate-500">Vehicle</label>
-							<select
-								v-model="form.vehicle"
-								class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-								:disabled="!form.customer || loadingVehicles"
-							>
+							<label class="portal-label">Vehicle</label>
+							<select v-model="form.vehicle" class="portal-input" :disabled="!form.customer || loadingVehicles">
 								<option value="">{{ vehicleSelectPlaceholder }}</option>
 								<option v-for="v in vehicles" :key="v.name" :value="v.name">
 									{{ formatVehicleOption(v) }}
@@ -322,56 +301,41 @@
 							</select>
 							<p
 								v-if="form.customer && !loadingVehicles && !vehicles.length"
-								class="mt-1 text-xs text-amber-400"
+								class="mt-2 text-xs text-amber-500/90"
 							>
 								No vehicles for this customer. Add one in Desk → Vehicle.
 							</p>
 						</div>
 						<div>
-							<label class="mb-1 block text-[11px] uppercase text-slate-500">Scheduled start</label>
-							<input
-								v-model="form.scheduled_start"
-								type="datetime-local"
-								class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-							/>
+							<label class="portal-label">Scheduled start</label>
+							<input v-model="form.scheduled_start" type="datetime-local" class="portal-input" />
 						</div>
 						<div>
-							<label class="mb-1 block text-[11px] uppercase text-slate-500">Scheduled end</label>
-							<input
-								v-model="form.scheduled_end"
-								type="datetime-local"
-								class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-							/>
+							<label class="portal-label">Scheduled end</label>
+							<input v-model="form.scheduled_end" type="datetime-local" class="portal-input" />
 						</div>
 						<div>
-							<label class="mb-1 block text-[11px] uppercase text-slate-500">Advisor (optional)</label>
-							<input
-								v-model="form.service_advisor"
-								class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-							/>
+							<label class="portal-label">Advisor (optional)</label>
+							<input v-model="form.service_advisor" class="portal-input" />
 						</div>
 						<div>
-							<label class="mb-1 block text-[11px] uppercase text-slate-500">Remarks</label>
-							<textarea
-								v-model="form.remarks"
-								rows="2"
-								class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-							/>
+							<label class="portal-label">Remarks</label>
+							<textarea v-model="form.remarks" rows="3" class="portal-input resize-y" />
 						</div>
 					</div>
-					<p v-if="pickerError" class="mt-3 text-sm text-amber-300">{{ pickerError }}</p>
-					<p v-if="saveError" class="mt-3 text-sm text-rose-300">{{ saveError }}</p>
-					<div class="mt-5 flex justify-end gap-2">
+					<p v-if="pickerError" class="mt-4 text-sm text-amber-400">{{ pickerError }}</p>
+					<p v-if="saveError" class="mt-4 text-sm text-red-400">{{ saveError }}</p>
+					<div class="mt-8 flex justify-end gap-3 border-t border-slate-200/90 dark:border-slate-800/80 pt-6">
 						<button
 							type="button"
-							class="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800"
+							class="rounded-lg border border-slate-300 dark:border-slate-700 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800"
 							@click="modalOpen = false"
 						>
 							Cancel
 						</button>
 						<button
 							type="button"
-							class="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
+							class="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 disabled:opacity-50"
 							:disabled="saving"
 							@click="submitAppointment"
 						>
@@ -389,6 +353,12 @@ import { ref, reactive, computed, onMounted } from "vue";
 import { RouterLink } from "vue-router";
 import { frappeCall, restResourceList, restInsert } from "../utils/api";
 import { useCustomerVehicleSelects } from "../composables/useCustomerVehicleSelects";
+import WxBreadcrumb from "../components/layout/WxBreadcrumb.vue";
+
+const breadcrumbItems = [
+	{ label: "Workshop", to: "/" },
+	{ label: "Dashboard" },
+];
 
 const DASHBOARD_METHOD =
 	"workshop_mgmt.workshop_management.page.garage_business_dashboard.garage_business_dashboard.get_dashboard_data";
@@ -471,10 +441,10 @@ function apptDateKey(scheduledStart) {
 }
 
 function pillClass(status) {
-	if (status === "Completed") return "bg-emerald-500/20 text-emerald-300";
-	if (status === "In Progress" || status === "Checked-In") return "bg-sky-500/20 text-sky-300";
-	if (status === "Cancelled" || status === "No-Show") return "bg-rose-500/20 text-rose-300";
-	return "bg-slate-700 text-slate-300";
+	if (status === "Completed") return "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300";
+	if (status === "In Progress" || status === "Checked-In") return "bg-blue-500/15 text-blue-700 dark:text-blue-300";
+	if (status === "Cancelled" || status === "No-Show") return "bg-red-500/15 text-red-700 dark:text-red-300";
+	return "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400";
 }
 
 const kpiCards = computed(() => {

@@ -1,242 +1,346 @@
 <template>
-	<div class="space-y-6">
-		<div class="flex flex-wrap items-center justify-between gap-3">
+	<div class="mx-auto max-w-7xl space-y-8">
+		<WxBreadcrumb :items="breadcrumbItems" />
+
+		<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+			<div class="portal-card">
+				<p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Total loaded</p>
+				<p class="mt-2 text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-50">{{ stats.total }}</p>
+			</div>
+			<div class="portal-card">
+				<p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Linked to job card</p>
+				<p class="mt-2 text-2xl font-semibold tabular-nums text-emerald-800 dark:text-emerald-200">{{ stats.withJobCard }}</p>
+			</div>
+			<div class="portal-card">
+				<p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Awaiting job card</p>
+				<p class="mt-2 text-2xl font-semibold tabular-nums text-amber-800 dark:text-amber-200">{{ stats.withoutJobCard }}</p>
+			</div>
+			<div class="portal-card">
+				<p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">This week</p>
+				<p class="mt-2 text-2xl font-semibold tabular-nums text-sky-800 dark:text-sky-200">{{ stats.thisWeek }}</p>
+				<p class="mt-1 text-xs text-slate-500">By inspection date</p>
+			</div>
+		</div>
+
+		<div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
 			<div>
-				<h2 class="text-lg font-bold">Vehicle inspections</h2>
-				<p class="text-xs text-slate-500 mt-0.5">
+				<h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Vehicle inspections</h2>
+				<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
 					Load the standard checklist, set status and notes per line, save. Create job card when ready (lines added in Desk).
 				</p>
 			</div>
-			<button
-				type="button"
-				class="rounded-lg bg-gradient-to-r from-violet-600 to-sky-600 px-4 py-2 text-sm font-semibold text-white shadow hover:opacity-95 transition"
-				@click="openNewModal"
-			>
-				+ New inspection
-			</button>
+			<UiButton type="button" class="shrink-0" @click="openNewModal">
+				<svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+					<path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+				</svg>
+				New inspection
+			</UiButton>
 		</div>
 
-		<p v-if="listError" class="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+		<p v-if="listError" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
 			{{ listError }}
 		</p>
-
-		<div class="rounded-xl border border-slate-800 overflow-hidden">
-			<div class="overflow-x-auto">
-				<table class="w-full text-sm">
-					<thead class="bg-slate-900 text-left text-slate-500 uppercase text-[11px] tracking-wide">
-						<tr>
-							<th class="px-4 py-3">ID</th>
-							<th class="px-4 py-3">Appointment</th>
-							<th class="px-4 py-3">Customer</th>
-							<th class="px-4 py-3">Vehicle</th>
-							<th class="px-4 py-3">Date</th>
-							<th class="px-4 py-3 w-24">Desk</th>
-						</tr>
-					</thead>
-					<tbody class="divide-y divide-slate-800">
-						<tr v-if="loading" class="text-slate-500">
-							<td colspan="6" class="px-4 py-8 text-center">Loading…</td>
-						</tr>
-						<tr v-else-if="!rows.length" class="text-slate-500">
-							<td colspan="6" class="px-4 py-8 text-center">No inspections</td>
-						</tr>
-						<tr
-							v-for="r in rows"
-							:key="r.name"
-							class="hover:bg-slate-900/50 cursor-pointer"
-							@click="openEditor(r.name)"
-						>
-							<td class="px-4 py-2 font-mono text-sky-300">{{ r.name }}</td>
-							<td class="px-4 py-2 font-mono text-xs text-slate-400">{{ r.appointment || "—" }}</td>
-							<td class="px-4 py-2 text-slate-300">{{ r.customer || "—" }}</td>
-							<td class="px-4 py-2 text-slate-400">{{ r.vehicle || "—" }}</td>
-							<td class="px-4 py-2 text-slate-400">{{ r.inspection_date || "—" }}</td>
-							<td class="px-4 py-2">
-								<a
-									:href="deskUrl('Vehicle Inspection', r.name)"
-									class="text-xs text-slate-500 hover:text-sky-400"
-									@click.stop
-									target="_blank"
-									rel="noopener noreferrer"
-									>Open</a
-								>
-							</td>
-						</tr>
-					</tbody>
-				</table>
+		<div class="portal-filter-bar flex flex-col gap-5 xl:flex-row xl:flex-wrap xl:items-end">
+			<div class="min-w-0 flex-1 xl:min-w-[18rem]">
+				<label class="portal-label" for="ins-filter-search">Search</label>
+				<UiInput
+					id="ins-filter-search"
+					v-model="docSearch"
+					type="search"
+					placeholder="ID, appointment, customer, vehicle…"
+					autocomplete="off"
+				/>
 			</div>
+			<div class="w-full sm:max-w-[11rem]">
+				<label class="portal-label" for="ins-filter-jc">Job card</label>
+				<UiSelect id="ins-filter-jc" v-model="filterJobCard" :options="jobCardFilterOptions" placeholder="All" />
+			</div>
+			<div class="w-full sm:max-w-[11rem]">
+				<label class="portal-label" for="ins-filter-from">From date</label>
+				<UiInput id="ins-filter-from" v-model="filterDateFrom" type="date" />
+			</div>
+			<div class="w-full sm:max-w-[11rem]">
+				<label class="portal-label" for="ins-filter-to">To date</label>
+				<UiInput id="ins-filter-to" v-model="filterDateTo" type="date" />
+			</div>
+			<UiButton type="button" variant="secondary" class="shrink-0" @click="clearListFilters">Clear filters</UiButton>
 		</div>
 
-		<!-- Editor -->
-		<Teleport to="body">
-			<div
-				v-if="editorOpen"
-				class="fixed inset-0 z-[55] flex items-center justify-center bg-black/75 p-3 backdrop-blur-sm"
-				@click.self="closeEditor"
+		<div class="portal-table-wrap">
+			<DataTable
+				v-model:selection="selectedRows"
+				v-model:rows="tableRows"
+				v-model:first="tableFirst"
+				:value="filteredRows"
+				data-key="name"
+				:loading="loading"
+				:pt="{ pcPaginator: dataTablePaginatorPt }"
+				paginator
+				:rows-per-page-options="[5, 10, 20, 50]"
+				paginator-template="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+				current-page-report-template="{first} to {last} of {totalRecords}"
+				:always-show-paginator="true"
+				table-class="portal-table"
+				table-style="min-width: 50rem"
+				@row-click="openEditor($event.data.name)"
 			>
-				<div
-					class="w-full max-w-5xl max-h-[95vh] overflow-hidden flex flex-col rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl"
-					role="dialog"
-					aria-modal="true"
-				>
-					<div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-800 p-4 shrink-0">
-						<div>
-							<h3 class="text-lg font-bold text-slate-100">Inspection</h3>
-							<p class="font-mono text-sm text-sky-300">{{ editName }}</p>
-							<a
-								v-if="editName"
-								:href="deskUrl('Vehicle Inspection', editName)"
+				<template #paginatorstart>
+					<Button type="button" icon="pi pi-refresh" text aria-label="Refresh list" @click="loadList" />
+				</template>
+				<template #paginatorend>
+					<Button type="button" icon="pi pi-download" text aria-label="Download CSV" @click="downloadInspectionsCsv" />
+				</template>
+				<template #empty>
+					{{ allRows.length ? "No matches — adjust filters" : "No inspections" }}
+				</template>
+				<Column selection-mode="multiple" header-style="width: 3rem" />
+				<Column field="name" header="ID">
+					<template #body="{ data }">
+						<span class="font-mono text-sm font-semibold text-slate-800 dark:text-slate-100">{{ data.name }}</span>
+					</template>
+				</Column>
+				<Column field="appointment" header="Appointment">
+					<template #body="{ data }">
+						<span class="font-mono text-xs text-slate-600 dark:text-slate-500">{{ data.appointment || "—" }}</span>
+					</template>
+				</Column>
+				<Column field="customer" header="Customer">
+					<template #body="{ data }">
+						<span class="text-slate-800 dark:text-slate-200">{{ data.customer || "—" }}</span>
+					</template>
+				</Column>
+				<Column field="vehicle" header="Vehicle">
+					<template #body="{ data }">
+						<span class="text-slate-600 dark:text-slate-400">{{ data.vehicle || "—" }}</span>
+					</template>
+				</Column>
+				<Column field="inspection_date" header="Date">
+					<template #body="{ data }">
+						<span class="tabular-nums text-slate-600 dark:text-slate-400">{{ data.inspection_date || "—" }}</span>
+					</template>
+				</Column>
+				<Column field="job_card" header="Job card">
+					<template #body="{ data }">
+						<span class="font-mono text-xs text-slate-600 dark:text-slate-500">{{ data.job_card || "—" }}</span>
+					</template>
+				</Column>
+				<Column header="Actions" header-style="min-width: 14rem; width: 18rem" body-style="min-width: 14rem">
+					<template #body="{ data }">
+						<div class="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-nowrap sm:items-stretch">
+							<Button
+								as="a"
+								:href="deskFormUrl('Vehicle Inspection', data.name)"
 								target="_blank"
 								rel="noopener noreferrer"
-								class="mt-1 inline-block text-xs text-slate-500 hover:text-sky-400"
-								>Open in Desk →</a
-							>
+								severity="secondary"
+								outlined
+								size="small"
+								class="portal-pv-desk-link !shrink-0"
+								icon="pi pi-external-link"
+								label="Open in Desk"
+								@click.stop
+							/>
+							<Button
+								v-if="data.job_card"
+								size="small"
+								severity="help"
+								class="!shrink-0 !whitespace-nowrap"
+								label="Job card"
+								icon="pi pi-wrench"
+								@click.stop="goJobCard(data.job_card)"
+							/>
 						</div>
-						<div class="flex flex-wrap gap-2">
-							<button
-								type="button"
-								class="rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800"
-								:disabled="editorLoading || saveLoading"
-								@click="loadStandardChecklist"
-							>
-								Load standard checklist
-							</button>
-							<button
-								type="button"
-								class="rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
-								:disabled="editorLoading || saveLoading || !editDoc"
-								@click="saveInspection"
-							>
-								{{ saveLoading ? "Saving…" : "Save" }}
-							</button>
-							<button
-								type="button"
-								class="rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-400 hover:bg-slate-800"
-								@click="closeEditor"
-							>
-								Close
-							</button>
+					</template>
+				</Column>
+			</DataTable>
+		</div>
+
+		<Teleport to="body">
+			<Transition
+				enter-active-class="transition-opacity duration-200 ease-out"
+				leave-active-class="transition-opacity duration-150 ease-in"
+				enter-from-class="opacity-0"
+				leave-to-class="opacity-0"
+			>
+				<div
+					v-if="editorOpen"
+					class="fixed inset-0 z-[55] flex justify-end bg-black/50 backdrop-blur-sm"
+					role="presentation"
+				>
+					<div class="min-w-0 flex-1" @click="closeEditor" />
+					<aside
+						class="portal-drawer-panel-xl portal-drawer-animate max-h-screen shrink-0 overflow-hidden"
+						role="dialog"
+						aria-modal="true"
+						@click.stop
+					>
+					<div class="flex max-h-screen min-h-0 flex-col">
+					<div class="sticky top-0 z-20 shrink-0 border-b border-slate-200 dark:border-slate-800 bg-slate-100/95 dark:bg-slate-900/95 px-6 py-4 backdrop-blur-sm">
+						<div class="flex flex-wrap items-start justify-between gap-3">
+							<div class="min-w-0">
+								<h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Inspection</h3>
+								<p class="mt-0.5 font-mono text-sm text-blue-600 dark:text-blue-400">{{ editName }}</p>
+								<Button
+									v-if="editName"
+									as="a"
+									:href="deskFormUrl('Vehicle Inspection', editName)"
+									target="_blank"
+									rel="noopener noreferrer"
+									class="portal-pv-desk-link mt-2"
+									severity="secondary"
+									outlined
+									size="small"
+									icon="pi pi-external-link"
+									label="Open in Desk"
+								/>
+							</div>
+							<div class="flex flex-wrap gap-2">
+								<button
+									type="button"
+									class="rounded-lg border border-slate-300 dark:border-slate-700 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800"
+									:disabled="editorLoading || saveLoading"
+									@click="loadStandardChecklist"
+								>
+									Load standard checklist
+								</button>
+								<button
+									type="button"
+									class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 disabled:opacity-50"
+									:disabled="editorLoading || saveLoading || !editDoc"
+									@click="saveInspection"
+								>
+									{{ saveLoading ? "Saving…" : "Save" }}
+								</button>
+								<button
+									type="button"
+									class="rounded-lg border border-slate-300 dark:border-slate-700 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800"
+									@click="closeEditor"
+								>
+									Close
+								</button>
+							</div>
 						</div>
 					</div>
 
-					<div v-if="editorLoading" class="p-12 text-center text-slate-500">Loading…</div>
-					<div v-else-if="editDoc" class="flex-1 overflow-y-auto p-4 space-y-4">
-						<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+					<div class="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+					<div v-if="editorLoading" class="py-16 text-center text-sm text-slate-600 dark:text-slate-500">Loading…</div>
+					<div v-else-if="editDoc" class="space-y-6">
+						<div class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
 							<div>
-								<label class="block text-[11px] uppercase text-slate-500 mb-1">Appointment</label>
+								<label class="portal-label">Appointment</label>
 								<input
 									:value="editDoc.appointment || ''"
 									disabled
-									class="w-full rounded-lg border border-slate-800 bg-slate-950/80 px-3 py-2 text-slate-400"
+									class="portal-input opacity-80"
 								/>
 							</div>
 							<div>
-								<label class="block text-[11px] uppercase text-slate-500 mb-1">Customer</label>
+								<label class="portal-label">Customer</label>
 								<input
 									:value="editDoc.customer || ''"
 									disabled
-									class="w-full rounded-lg border border-slate-800 bg-slate-950/80 px-3 py-2 text-slate-400"
+									class="portal-input opacity-80"
 								/>
 							</div>
 							<div>
-								<label class="block text-[11px] uppercase text-slate-500 mb-1">Vehicle</label>
+								<label class="portal-label">Vehicle</label>
 								<input
 									:value="editDoc.vehicle || ''"
 									disabled
-									class="w-full rounded-lg border border-slate-800 bg-slate-950/80 px-3 py-2 text-slate-400"
+									class="portal-input opacity-80"
 								/>
 							</div>
 							<div>
-								<label class="block text-[11px] uppercase text-slate-500 mb-1">Inspection date</label>
+								<label class="portal-label">Inspection date</label>
 								<input
 									v-model="editDoc.inspection_date"
 									type="date"
-									class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100"
+									class="portal-input"
 								/>
 							</div>
 							<div class="sm:col-span-2">
-								<label class="block text-[11px] uppercase text-slate-500 mb-1">Inspector (optional)</label>
+								<label class="portal-label">Inspector (optional)</label>
 								<input
 									v-model="editDoc.inspector"
-									class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+									class="portal-input"
 									placeholder="User ID"
 								/>
 							</div>
 							<div class="flex flex-wrap items-end gap-x-2 gap-y-1 sm:col-span-2">
 								<a
 									v-if="editDoc.appointment"
-									:href="deskUrl('Service Appointment', editDoc.appointment)"
+									:href="deskFormUrl('Service Appointment', editDoc.appointment)"
 									target="_blank"
-									class="text-xs text-sky-400 hover:underline"
+									class="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
 									>Appointment</a
 								>
 								<template v-if="editDoc.job_card">
-									<span v-if="editDoc.appointment" class="text-slate-600">·</span>
+									<span v-if="editDoc.appointment" class="text-slate-600 dark:text-slate-500">·</span>
 									<a
-										:href="deskUrl('Job Card', editDoc.job_card)"
+										:href="deskFormUrl('Job Card', editDoc.job_card)"
 										target="_blank"
-										class="text-xs text-sky-400 hover:underline"
+										class="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
 										>Job card (Desk)</a
 									>
-									<RouterLink
-										:to="{ path: '/job-cards', query: { open: editDoc.job_card } }"
-										class="text-xs font-medium text-emerald-400 hover:underline"
-										@click="closeEditor"
+									<button
+										type="button"
+										class="text-xs font-medium text-emerald-600 hover:underline dark:text-emerald-400"
+										@click="goJobCardFromEditor(editDoc.job_card)"
 									>
 										Job card (workshop)
-									</RouterLink>
+									</button>
 								</template>
 							</div>
 						</div>
 
 						<div
 							v-if="editDoc.name && !editDoc.job_card"
-							class="rounded-lg border border-slate-800 bg-slate-950/50 p-3 flex flex-wrap gap-2 items-center"
+							class="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-4"
 						>
 							<button
 								type="button"
-								class="rounded-lg bg-amber-700 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-50"
+								class="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-500"
 								@click="openJobCardFromInspection"
 							>
-								Create job card from inspection
+								Create job card
 							</button>
-							<span class="text-xs text-slate-500">Uses Desk logic (company, warehouse). Add service/parts on the job card in Desk.</span>
+							<span class="text-xs text-slate-600 dark:text-slate-500">Company and warehouse in Desk. Add lines on the job card in Desk.</span>
 						</div>
 
-						<div class="rounded-xl border border-slate-800 overflow-hidden">
-							<div class="overflow-x-auto max-h-[50vh] overflow-y-auto">
-								<table class="w-full text-xs min-w-[480px]">
-									<thead class="bg-slate-950 text-left text-slate-500 uppercase tracking-wide sticky top-0 z-10">
+						<div class="portal-table-wrap overflow-hidden">
+							<div class="max-h-[50vh] overflow-auto">
+								<table class="portal-table min-w-[520px] text-xs">
+									<thead>
 										<tr>
-											<th class="px-2 py-2 w-40">Section</th>
-											<th class="px-2 py-2 min-w-[140px]">Check item</th>
-											<th class="px-2 py-2 min-w-[9rem]">Status</th>
-											<th class="px-2 py-2 min-w-[160px]">Notes</th>
-											<th class="px-2 py-2 w-20"></th>
+											<th class="w-40">Section</th>
+											<th class="min-w-[140px]">Check item</th>
+											<th class="min-w-[9rem]">Status</th>
+											<th class="min-w-[180px]">Notes</th>
+											<th class="w-20"></th>
 										</tr>
 									</thead>
-									<tbody class="divide-y divide-slate-800">
+									<tbody>
 										<tr v-for="(row, idx) in editDoc.inspection_items || []" :key="row.name || 'n-' + idx">
-											<td class="px-1 py-1 align-top">
+											<td class="align-top">
 												<select
 													v-model="row.section"
-													class="w-full rounded border border-slate-700 bg-slate-950 px-1 py-1.5 text-slate-200"
+													class="portal-input py-2 text-xs"
 												>
 													<option v-for="s in SECTION_OPTIONS" :key="s" :value="s">{{ s }}</option>
 												</select>
 											</td>
-											<td class="px-1 py-1 align-top">
+											<td class="align-top">
 												<input
 													v-model="row.check_item"
-													class="w-full rounded border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-200"
+													class="portal-input py-2 text-xs"
 													placeholder="Check item"
 												/>
 											</td>
-											<td class="px-1 py-1 align-top">
-												<div class="flex gap-1 mb-1">
+											<td class="align-top">
+												<div class="mb-2 flex gap-2">
 													<button
 														type="button"
-														class="flex-1 rounded border border-emerald-700/80 bg-emerald-950/60 px-1.5 py-1 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-900/70"
+														class="flex-1 rounded-lg border border-emerald-800/80 bg-emerald-950/40 px-2 py-1.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300 transition hover:bg-emerald-900/50"
 														title="Mark OK"
 														@click="row.status = STATUS_QUICK_OK"
 													>
@@ -244,7 +348,7 @@
 													</button>
 													<button
 														type="button"
-														class="flex-1 rounded border border-amber-700/80 bg-amber-950/60 px-1.5 py-1 text-[11px] font-semibold text-amber-200 hover:bg-amber-900/70"
+														class="flex-1 rounded-lg border border-amber-800/80 bg-amber-950/40 px-2 py-1.5 text-xs font-semibold text-amber-200 transition hover:bg-amber-900/50"
 														title="Needs attention"
 														@click="row.status = STATUS_QUICK_REPORT"
 													>
@@ -253,22 +357,22 @@
 												</div>
 												<select
 													v-model="row.status"
-													class="w-full rounded border border-slate-700 bg-slate-950 px-1 py-1.5"
+													class="portal-input py-2 text-xs"
 												>
 													<option v-for="st in STATUS_OPTIONS" :key="st" :value="st">{{ st }}</option>
 												</select>
 											</td>
-											<td class="px-1 py-1 align-top">
+											<td class="align-top">
 												<textarea
 													v-model="row.notes"
 													rows="2"
-													class="w-full rounded border border-slate-700 bg-slate-950 px-2 py-1 text-slate-200"
+													class="portal-input resize-y text-xs"
 												/>
 											</td>
-											<td class="px-1 py-1 align-top">
+											<td class="align-top">
 												<button
 													type="button"
-													class="text-rose-400 text-[11px] hover:underline"
+													class="text-xs font-medium text-red-400 hover:text-red-700 dark:text-red-300"
 													@click="removeLine(idx)"
 												>
 													Remove
@@ -276,7 +380,7 @@
 											</td>
 										</tr>
 										<tr v-if="!(editDoc.inspection_items || []).length">
-											<td colspan="5" class="px-4 py-8 text-center text-slate-500">
+											<td colspan="5" class="py-10 text-center text-slate-600 dark:text-slate-500">
 												No lines — use “Load standard checklist” or add rows in Desk.
 											</td>
 										</tr>
@@ -287,53 +391,51 @@
 
 						<button
 							type="button"
-							class="text-sm text-sky-400 hover:underline"
+							class="text-sm font-semibold text-sky-700 hover:text-sky-900 dark:text-sky-400 dark:hover:text-sky-300"
 							@click="addBlankLine"
 						>
 							+ Add blank line
 						</button>
 					</div>
-					<p v-else-if="editorError" class="p-6 text-red-300 text-sm">{{ editorError }}</p>
+					<p v-else-if="editorError" class="text-sm text-red-400">{{ editorError }}</p>
 
-					<p v-if="editorBanner" class="border-t border-slate-800 px-4 py-2 text-sm text-amber-200 bg-amber-950/30">
+					<p v-if="editorBanner" class="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
 						{{ editorBanner }}
 					</p>
+					</div>
+					</div>
+					</aside>
 				</div>
-			</div>
+			</Transition>
 		</Teleport>
 
-		<!-- New inspection: pick checked-in appointment -->
 		<Teleport to="body">
 			<div
 				v-if="newOpen"
-				class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+				class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
 				@click.self="newOpen = false"
 			>
-				<div class="w-full max-w-md rounded-2xl border border-slate-600 bg-slate-900 p-5 shadow-2xl">
-					<h4 class="text-base font-bold text-slate-100 mb-1">New inspection</h4>
-					<p class="text-xs text-slate-500 mb-4">Choose a checked-in appointment without an inspection yet.</p>
-					<select
-						v-model="newAppointment"
-						class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
-						:disabled="newLoading"
-					>
+				<div class="portal-modal-panel" role="dialog" aria-modal="true">
+					<h4 class="text-lg font-semibold text-slate-900 dark:text-slate-100">New inspection</h4>
+					<p class="mt-2 text-sm text-slate-600 dark:text-slate-500">Choose a checked-in appointment without an inspection yet.</p>
+					<select v-model="newAppointment" class="portal-input mt-6" :disabled="newLoading">
 						<option value="">{{ newLoading ? "Loading…" : "Select appointment…" }}</option>
 						<option v-for="a in newAppointmentChoices" :key="a.name" :value="a.name">
 							{{ a.name }} — {{ a.customer }} ({{ a.vehicle }})
 						</option>
 					</select>
-					<p v-if="newError" class="mt-3 text-sm text-red-300">{{ newError }}</p>
-					<div class="mt-5 flex justify-end gap-2">
+					<p v-if="newError" class="mt-4 text-sm text-red-400">{{ newError }}</p>
+					<div class="mt-8 flex justify-end gap-3 border-t border-slate-200/90 dark:border-slate-800/80 pt-6">
 						<button
 							type="button"
-							class="rounded-lg border border-slate-600 px-4 py-2 text-sm hover:bg-slate-800"
+							class="rounded-lg border border-slate-300 dark:border-slate-700 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800"
 							@click="newOpen = false"
 						>
 							Cancel
 						</button>
 						<button
 							type="button"
-							class="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-500 disabled:opacity-50"
+							class="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 disabled:opacity-50"
 							:disabled="newSaving || !newAppointment"
 							@click="submitNewInspection"
 						>
@@ -344,22 +446,23 @@
 			</div>
 		</Teleport>
 
-		<!-- Job card from inspection -->
 		<Teleport to="body">
 			<div
 				v-if="jcOpen"
-				class="fixed inset-0 z-[65] flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
+				class="fixed inset-0 z-[65] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
 				@click.self="jcOpen = false"
 			>
-				<div class="w-full max-w-md rounded-2xl border border-slate-600 bg-slate-900 p-5 shadow-2xl">
-					<h4 class="text-base font-bold text-slate-100 mb-1">Create job card</h4>
-					<p class="text-xs text-slate-500 mb-4">Company and warehouse (same as Desk). Service and part lines are added on the job card.</p>
-					<div class="space-y-3">
+				<div class="portal-modal-panel" role="dialog" aria-modal="true">
+					<h4 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Create job card</h4>
+					<p class="mt-2 text-sm text-slate-600 dark:text-slate-500">
+						Company and warehouse (same as Desk). Service and part lines are added on the job card.
+					</p>
+					<div class="mt-6 space-y-4">
 						<div>
-							<label class="block text-[11px] uppercase text-slate-500 mb-1">Company</label>
+							<label class="portal-label">Company</label>
 							<select
 								v-model="jcCompany"
-								class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+								class="portal-input"
 								:disabled="jcMetaLoading"
 								@change="onJCCompanyChange"
 							>
@@ -368,10 +471,10 @@
 							</select>
 						</div>
 						<div>
-							<label class="block text-[11px] uppercase text-slate-500 mb-1">Warehouse</label>
+							<label class="portal-label">Warehouse</label>
 							<select
 								v-model="jcWarehouse"
-								class="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm"
+								class="portal-input"
 								:disabled="!jcCompany || jcWarehousesLoading"
 							>
 								<option value="">{{ jcWarehousePlaceholder }}</option>
@@ -381,14 +484,18 @@
 							</select>
 						</div>
 					</div>
-					<p v-if="jcError" class="mt-3 text-sm text-red-300">{{ jcError }}</p>
-					<div class="mt-5 flex justify-end gap-2">
-						<button type="button" class="rounded-lg border border-slate-600 px-4 py-2 text-sm hover:bg-slate-800" @click="jcOpen = false">
+					<p v-if="jcError" class="mt-4 text-sm text-red-400">{{ jcError }}</p>
+					<div class="mt-8 flex justify-end gap-3 border-t border-slate-200/90 dark:border-slate-800/80 pt-6">
+						<button
+							type="button"
+							class="rounded-lg border border-slate-300 dark:border-slate-700 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800"
+							@click="jcOpen = false"
+						>
 							Cancel
 						</button>
 						<button
 							type="button"
-							class="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-500 disabled:opacity-50"
+							class="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 disabled:opacity-50"
 							:disabled="jcSubmitting || !jcCompany || !jcWarehouse"
 							@click="submitJobCardFromInspection"
 						>
@@ -402,14 +509,24 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
-import { RouterLink, useRoute, useRouter } from "vue-router";
+import { ref, computed, onMounted, watch, inject } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import {
 	restResourceList,
 	restResourceGet,
 	restResourcePut,
 	frappeCall,
 } from "../utils/api";
+import { deskFormUrl } from "../utils/desk.js";
+import { downloadCsv } from "../utils/csv.js";
+import { dataTablePaginatorPt } from "../utils/dataTablePaginatorPt.js";
+import DataTable from "primevue/datatable";
+import Column from "primevue/column";
+import Button from "primevue/button";
+import WxBreadcrumb from "../components/layout/WxBreadcrumb.vue";
+import UiButton from "../components/ui/UiButton.vue";
+import UiInput from "../components/ui/UiInput.vue";
+import UiSelect from "../components/ui/UiSelect.vue";
 
 const STATUS_OPTIONS = ["OK", "Good", "Fair", "Worn", "Needs Attention", "Critical", "N/A"];
 /** Quick buttons in the inspection grid */
@@ -427,9 +544,92 @@ const SECTION_OPTIONS = [
 const route = useRoute();
 const router = useRouter();
 
+const breadcrumbItems = [
+	{ label: "Workshop", to: "/" },
+	{ label: "Inspections" },
+];
+
+const docSearch = inject("wxDocSearch", ref(""));
+const jobCardFilterOptions = [
+	{ label: "All", value: "" },
+	{ label: "Linked", value: "yes" },
+	{ label: "Not linked", value: "no" },
+];
+const selectedRows = ref([]);
+const tableRows = ref(5);
+const tableFirst = ref(0);
+
+const INSPECTION_LIST_FIELDS =
+	'["name","appointment","customer","vehicle","inspection_date","job_card","modified"]';
+
 const loading = ref(true);
 const listError = ref("");
-const rows = ref([]);
+const allRows = ref([]);
+const filterJobCard = ref("");
+const filterDateFrom = ref("");
+const filterDateTo = ref("");
+
+const filteredRows = computed(() => {
+	let list = allRows.value || [];
+	const q = (docSearch.value && String(docSearch.value).trim().toLowerCase()) || "";
+	if (q) {
+		list = list.filter((r) => {
+			const blob = [r.name, r.appointment, r.customer, r.vehicle, r.inspection_date, r.job_card]
+				.map((x) => String(x ?? "").toLowerCase())
+				.join(" ");
+			return blob.includes(q);
+		});
+	}
+	const jc = filterJobCard.value;
+	if (jc === "yes") list = list.filter((r) => !!(r.job_card && String(r.job_card).trim()));
+	if (jc === "no") list = list.filter((r) => !(r.job_card && String(r.job_card).trim()));
+	const from = filterDateFrom.value;
+	const to = filterDateTo.value;
+	if (from) {
+		list = list.filter((r) => {
+			const d = (r.inspection_date && String(r.inspection_date).slice(0, 10)) || "";
+			return d >= from;
+		});
+	}
+	if (to) {
+		list = list.filter((r) => {
+			const d = (r.inspection_date && String(r.inspection_date).slice(0, 10)) || "";
+			return d && d <= to;
+		});
+	}
+	return list;
+});
+
+const stats = computed(() => {
+	const list = allRows.value || [];
+	const withJc = list.filter((r) => r.job_card && String(r.job_card).trim()).length;
+	const now = new Date();
+	const weekAgo = new Date(now.getTime() - 7 * 86400000);
+	const thisWeek = list.filter((r) => {
+		const raw = r.inspection_date && String(r.inspection_date).slice(0, 10);
+		if (!raw) return false;
+		const d = new Date(raw + "T12:00:00");
+		return !Number.isNaN(d.getTime()) && d >= weekAgo;
+	}).length;
+	return {
+		total: list.length,
+		withJobCard: withJc,
+		withoutJobCard: list.length - withJc,
+		thisWeek,
+	};
+});
+
+watch([docSearch, filterJobCard, filterDateFrom, filterDateTo], () => {
+	tableFirst.value = 0;
+});
+
+function clearListFilters() {
+	docSearch.value = "";
+	filterJobCard.value = "";
+	filterDateFrom.value = "";
+	filterDateTo.value = "";
+}
+
 
 const editorOpen = ref(false);
 const editorLoading = ref(false);
@@ -462,16 +662,14 @@ const jcWarehousePlaceholder = computed(() => {
 	return "Select warehouse…";
 });
 
-function deskUrl(doctype, name) {
-	const slug =
-		doctype === "Vehicle Inspection"
-			? "vehicle-inspection"
-			: doctype === "Service Appointment"
-				? "service-appointment"
-				: doctype === "Job Card"
-					? "job-card"
-					: doctype.toLowerCase().replace(/\s+/g, "-");
-	return `/app/${slug}/${encodeURIComponent(name)}`;
+function goJobCard(name) {
+	if (!name) return;
+	router.push({ name: "job-card-detail", params: { id: String(name) } });
+}
+
+function goJobCardFromEditor(name) {
+	closeEditor();
+	goJobCard(name);
 }
 
 function stripForPut(doc) {
@@ -507,8 +705,8 @@ async function loadList() {
 	loading.value = true;
 	listError.value = "";
 	try {
-		rows.value = await restResourceList("Vehicle Inspection", {
-			fields: '["name","appointment","customer","vehicle","inspection_date","modified"]',
+		allRows.value = await restResourceList("Vehicle Inspection", {
+			fields: INSPECTION_LIST_FIELDS,
 			order_by: "modified desc",
 			limit_page_length: 100,
 		});
@@ -517,6 +715,20 @@ async function loadList() {
 	} finally {
 		loading.value = false;
 	}
+}
+
+function downloadInspectionsCsv() {
+	const list = filteredRows.value || [];
+	const headers = ["ID", "Appointment", "Customer", "Vehicle", "Inspection date", "Job card"];
+	const rows = list.map((r) => [
+		r.name,
+		r.appointment || "",
+		r.customer || "",
+		r.vehicle || "",
+		r.inspection_date || "",
+		r.job_card || "",
+	]);
+	downloadCsv(`vehicle-inspections-${Date.now()}.csv`, headers, rows);
 }
 
 async function openEditor(name) {
@@ -719,7 +931,7 @@ async function submitJobCardFromInspection() {
 		jcOpen.value = false;
 		await loadList();
 		if (jobName) {
-			router.push({ path: "/job-cards", query: { open: String(jobName) } });
+			router.push({ name: "job-card-detail", params: { id: String(jobName) } });
 		} else {
 			await openEditor(editDoc.value.name);
 		}

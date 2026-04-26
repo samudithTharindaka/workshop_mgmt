@@ -1,6 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+	<script>
+		(function () {
+			try {
+				var t = localStorage.getItem("workshop-portal-theme");
+				document.documentElement.setAttribute("data-theme", t === "light" ? "light" : "dark");
+			} catch (e) {
+				document.documentElement.setAttribute("data-theme", "dark");
+			}
+		})();
+	</script>
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400..700;1,14..32,400..700&display=swap"
+		rel="stylesheet"
+	/>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>Workshop Portal</title>

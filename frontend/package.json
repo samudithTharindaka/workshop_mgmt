@@ -10,6 +10,9 @@
 		"copy-html-entry": "node -e \"require('fs').copyFileSync('../workshop_mgmt/public/frontend/index.html', '../workshop_mgmt/www/workshop_portal.html')\""
 	},
 	"dependencies": {
+		"@primeuix/themes": "^2.0.3",
+		"primeicons": "^7.0.0",
+		"primevue": "^4.5.5",
 		"vue": "^3.4.21",
 		"vue-router": "^4.3.0"
 	},

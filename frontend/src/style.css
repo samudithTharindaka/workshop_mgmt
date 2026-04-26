@@ -2,6 +2,270 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Workshop Executive — light-first SaaS shell; Rose (brand) + Sky (accents) + Amber (signals).
+ * Touch targets: prefer min-h-11 (2.75rem) on primary controls.
+ */
+html[data-theme="light"] {
+	color-scheme: light;
+}
+html[data-theme="dark"] {
+	color-scheme: dark;
+}
+
+@layer base {
+	html {
+		@apply font-sans;
+		font-optical-sizing: auto;
+		text-rendering: optimizeLegibility;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+	}
+}
+
 body {
-	@apply antialiased bg-slate-950 text-slate-100 min-h-screen;
+	@apply min-h-screen bg-slate-100/90 text-base font-normal leading-normal text-slate-900 dark:bg-[#0b0f19] dark:text-slate-100;
+}
+
+@layer components {
+	/* —— Forms —— */
+	.portal-input {
+		@apply min-h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm transition dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100;
+		@apply placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:placeholder:text-slate-500 dark:focus:border-sky-400;
+	}
+	.portal-input:disabled {
+		@apply cursor-not-allowed opacity-60;
+	}
+	.portal-label {
+		@apply mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400;
+	}
+	/* Filter toolbar (mockup: soft panel) */
+	.portal-filter-bar {
+		@apply rounded-2xl border border-slate-200/90 bg-white/90 p-5 shadow-sm dark:border-slate-700/80 dark:bg-slate-900/50;
+	}
+	.portal-card {
+		@apply rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/40;
+	}
+	.portal-table-wrap {
+		@apply min-w-0 overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm dark:border-slate-800/80 dark:bg-slate-900/30;
+	}
+	.portal-table {
+		@apply w-full text-left text-sm;
+	}
+	.portal-table thead {
+		@apply sticky top-0 z-10 border-b border-slate-200 bg-slate-50/95 text-xs font-semibold uppercase tracking-wider text-slate-400 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-500;
+	}
+	.portal-table th {
+		@apply px-5 py-3.5;
+	}
+	.portal-table tbody tr {
+		@apply min-h-[3.25rem] border-b border-slate-100 transition-colors hover:bg-slate-50/90 dark:border-slate-800/60 dark:hover:bg-slate-800/30;
+	}
+	.portal-table tbody tr:last-child {
+		@apply border-b-0;
+	}
+	.portal-table td {
+		@apply px-5 py-4 align-middle text-slate-800 dark:text-slate-200;
+	}
+	/* Primary CTA — brand rose */
+	.portal-btn-primary {
+		@apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-rose-600 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/35 active:bg-rose-700 disabled:pointer-events-none disabled:opacity-50 dark:bg-rose-500 dark:hover:bg-rose-400;
+	}
+	.portal-btn-secondary {
+		@apply inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:bg-slate-800;
+	}
+	.portal-modal-panel {
+		@apply w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900;
+	}
+	.portal-modal-wide {
+		@apply w-full max-w-5xl rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900;
+	}
+	.portal-drawer-panel {
+		@apply flex h-full w-full max-w-lg flex-col border-l border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900;
+	}
+	.portal-drawer-panel-wide {
+		@apply flex h-full w-full max-w-2xl flex-col border-l border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900;
+	}
+	.portal-drawer-panel-xl {
+		@apply flex h-full w-full max-w-5xl flex-col border-l border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900;
+	}
+	.portal-drawer-header {
+		@apply border-b border-slate-200 bg-white px-6 py-5 dark:border-slate-700 dark:bg-slate-900;
+	}
+	.portal-desk-btn {
+		@apply inline-flex min-h-10 items-center gap-1.5 rounded-lg bg-sky-100 px-3 py-1.5 text-xs font-semibold text-sky-900 transition hover:bg-sky-200 dark:bg-sky-900/50 dark:text-sky-100 dark:hover:bg-sky-800/70;
+	}
+
+	/* PrimeVue Button (unstyled): desk + table actions — single-line, shadcn-like */
+	.portal-pv-desk-link.p-button,
+	.portal-pv-desk-link {
+		@apply inline-flex min-h-9 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800;
+	}
+	.portal-pv-desk-link.p-button.p-button-outlined {
+		@apply border-sky-200 bg-sky-50/90 text-sky-950 hover:bg-sky-100 dark:border-sky-700/60 dark:bg-sky-950/40 dark:text-sky-100 dark:hover:bg-sky-900/50;
+	}
+	.portal-pv-desk-link .p-button-label {
+		@apply whitespace-nowrap;
+	}
+
+	/* PrimeVue SelectButton — segmented control */
+	.p-selectbutton {
+		@apply inline-flex flex-wrap gap-0 rounded-xl border border-slate-200 bg-slate-50/80 p-0.5 dark:border-slate-600 dark:bg-slate-900/50;
+	}
+	.p-selectbutton .p-togglebutton,
+	.p-selectbutton .p-button {
+		@apply min-h-10 rounded-lg border-0 bg-transparent px-3 text-xs font-semibold text-slate-600 shadow-none ring-0 dark:text-slate-400;
+	}
+	.p-selectbutton .p-togglebutton.p-togglebutton-checked,
+	.p-selectbutton .p-button.p-highlight {
+		@apply bg-sky-100 text-sky-950 dark:bg-sky-950/50 dark:text-sky-100;
+	}
+
+	/* PrimeVue DataTable + paginator (unstyled mode) */
+	.p-datatable {
+		@apply rounded-2xl;
+	}
+	.p-datatable .p-datatable-table {
+		@apply w-full text-left text-sm;
+	}
+	.p-datatable .p-datatable-thead > tr > th {
+		@apply border-b border-slate-200 bg-slate-50/95 px-5 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:border-slate-700 dark:bg-slate-900/95 dark:text-slate-500;
+	}
+	.p-datatable .p-datatable-tbody > tr > td {
+		@apply border-b border-slate-100 px-5 py-4 align-middle text-slate-800 dark:border-slate-800/60 dark:text-slate-200;
+	}
+	.p-datatable .p-datatable-tbody > tr:last-child > td {
+		@apply border-b-0;
+	}
+	.p-datatable .p-datatable-tbody > tr.p-row-selected > td {
+		@apply bg-sky-50 dark:bg-sky-950/30;
+	}
+	/*
+	 * Paginator layout (unstyled PrimeVue 4): the paginator is a <nav> with class
+	 * `.p-paginator`. Inside it: `.p-paginator-content-start`, `.p-paginator-content`,
+	 * `.p-paginator-content-end`. Without display:flex they stack vertically.
+	 * Use direct class selectors so specificity works regardless of parent wrapper.
+	 */
+	/*
+	 * Horizontal inset for paginator bar: pad the inner `.p-paginator` row only.
+	 * Do NOT pad `<nav class="p-datatable-paginator-*">` — that broke layout (nav ≠ flex host).
+	 */
+	.portal-table-wrap nav.p-datatable-paginator-bottom > .p-paginator,
+	.portal-table-wrap nav.p-datatable-paginator-top > .p-paginator {
+		box-sizing: border-box;
+		padding-left: 5%;
+		padding-right: 5%;
+	}
+
+	.p-paginator {
+		@apply flex w-full flex-row flex-nowrap items-center justify-between gap-3 overflow-x-auto border-t border-slate-200 bg-white py-3 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400;
+	}
+	.p-paginator-content {
+		@apply flex min-w-0 flex-1 flex-row flex-nowrap items-center gap-2 overflow-x-auto;
+	}
+	.p-paginator-content-start,
+	.p-paginator-content-end {
+		@apply flex shrink-0 items-center;
+	}
+	.p-paginator-pages {
+		@apply flex items-center gap-1;
+	}
+	.p-paginator-page,
+	.p-paginator-first,
+	.p-paginator-prev,
+	.p-paginator-next,
+	.p-paginator-last {
+		@apply inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-2 text-xs font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800;
+	}
+	.p-paginator-page.p-paginator-page-selected {
+		@apply border-sky-300 bg-sky-100 text-sky-900 dark:border-sky-600 dark:bg-sky-900/60 dark:text-sky-100;
+	}
+	.p-paginator-rpp-dropdown {
+		@apply inline-flex min-h-9 min-w-[5.5rem] shrink-0 rounded-lg border border-slate-200 bg-white px-2 text-xs font-medium text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200;
+	}
+	.p-paginator .p-select {
+		@apply inline-flex min-h-9 min-w-[6rem] shrink-0 items-center rounded-lg border border-slate-200 bg-white px-2 text-xs font-medium text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200;
+	}
+	.p-paginator .p-select .p-select-label {
+		@apply pr-6 text-xs font-medium text-slate-700 dark:text-slate-200;
+	}
+	.p-paginator .p-select .p-select-dropdown {
+		@apply text-slate-500 dark:text-slate-400;
+	}
+	.p-paginator-current {
+		@apply text-xs font-medium text-slate-600 dark:text-slate-400;
+	}
+	.p-select-overlay {
+		@apply rounded-lg border border-slate-200 bg-white p-1 shadow-lg dark:border-slate-700 dark:bg-slate-900;
+	}
+	.p-select-overlay .p-select-option {
+		@apply cursor-pointer rounded-md px-2 py-1 text-xs text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800;
+	}
+	.p-select-overlay .p-select-option.p-select-option-selected {
+		@apply bg-sky-100 text-sky-900 dark:bg-sky-900/50 dark:text-sky-100;
+	}
+}
+
+@keyframes portal-drawer-in {
+	from {
+		transform: translateX(100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+.portal-drawer-animate {
+	animation: portal-drawer-in 0.2s ease-out both;
+}
+
+.portal-filter-bar .p-select-overlay {
+	border-radius: 0.75rem;
+	padding: 0.375rem;
+}
+
+.portal-filter-bar .p-select-overlay .p-select-option {
+	padding: 0.55rem 0.8rem;
+	border-radius: 0.5rem;
+	transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.portal-filter-bar .p-select-overlay .p-select-option:hover {
+	background: #f1f5f9;
+	color: #0f172a;
+}
+
+.portal-filter-bar .p-select-overlay .p-select-option.p-select-option-selected {
+	background: #e2e8f0;
+	color: #0f172a;
+}
+
+.p-toast .p-toast-message {
+	background: #0f172a;
+	color: #ffffff;
+	border: 1px solid #334155;
+	box-shadow: 0 12px 26px rgba(15, 23, 42, 0.22);
+}
+
+.p-toast .p-toast-message.p-toast-message-success {
+	background: #14532d;
+	border-color: #166534;
+}
+
+.p-toast .p-toast-message.p-toast-message-error {
+	background: #7f1d1d;
+	border-color: #991b1b;
+}
+
+.p-toast .p-toast-message .p-toast-summary,
+.p-toast .p-toast-message .p-toast-detail,
+.p-toast .p-toast-message .p-toast-icon-close,
+.p-toast .p-toast-message .p-toast-message-icon {
+	color: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.portal-drawer-animate {
+		animation: none;
+	}
 }
