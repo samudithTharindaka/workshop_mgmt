@@ -17,9 +17,9 @@ export const dataTablePaginatorPt = {
 			flexFlow: "row nowrap",
 			alignItems: "center",
 			justifyContent: "space-between",
-			gap: "12px",
-			minHeight: "3.25rem",
-			padding: "0.45rem 0",
+			gap: "16px",
+			minHeight: "3.5rem",
+			padding: "0.75rem 1.5rem",
 			width: "100%",
 			minWidth: 0,
 			overflowX: "auto",
@@ -30,6 +30,7 @@ export const dataTablePaginatorPt = {
 		style: {
 			display: "flex",
 			alignItems: "center",
+			gap: "8px",
 			flexShrink: "0",
 		},
 	},
@@ -38,7 +39,8 @@ export const dataTablePaginatorPt = {
 			display: "flex",
 			flexFlow: "row nowrap",
 			alignItems: "center",
-			gap: "8px",
+			justifyContent: "center",
+			gap: "12px",
 			flex: "1 1 auto",
 			minWidth: "0",
 			overflowX: "auto",
@@ -48,6 +50,7 @@ export const dataTablePaginatorPt = {
 		style: {
 			display: "flex",
 			alignItems: "center",
+			gap: "8px",
 			flexShrink: "0",
 		},
 	},
@@ -110,11 +113,12 @@ export const dataTablePaginatorPt = {
 	current: {
 		style: {
 			whiteSpace: "nowrap",
+			padding: "0 8px",
 		},
 	},
 	first: { style: { display: "inline-flex", alignItems: "center", justifyContent: "center" } },
 	prev: { style: { display: "inline-flex", alignItems: "center", justifyContent: "center" } },
 	next: { style: { display: "inline-flex", alignItems: "center", justifyContent: "center" } },
 	last: { style: { display: "inline-flex", alignItems: "center", justifyContent: "center" } },
-	pages: { style: { display: "inline-flex", alignItems: "center", gap: "4px" } },
+	pages: { style: { display: "inline-flex", alignItems: "center", gap: "6px" } },
 };

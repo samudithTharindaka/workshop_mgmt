@@ -1,30 +1,53 @@
 <template>
 	<div class="mx-auto max-w-7xl space-y-8">
+		<WxToast />
+		<WxConfirmPopup />
 		<WxBreadcrumb :items="breadcrumbItems" />
 
+		<!-- Stats — subtle hairline border + 2px top accent -->
 		<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-			<div class="portal-card">
-				<p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Total loaded</p>
-				<p class="mt-2 text-2xl font-semibold tabular-nums text-slate-900 dark:text-slate-50">{{ stats.total }}</p>
+			<div class="portal-card flex items-start gap-4 border-t-2 border-t-slate-300 hover:shadow-md dark:border-t-slate-600">
+				<div class="flex-1 min-w-0">
+					<p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Total loaded</p>
+					<p class="mt-1.5 text-3xl font-bold tabular-nums text-slate-900 dark:text-slate-50">{{ stats.total }}</p>
+				</div>
+				<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800">
+					<i class="pi pi-list text-slate-400 dark:text-slate-500" style="font-size: 1rem" aria-hidden="true" />
+				</div>
 			</div>
-			<div class="portal-card">
-				<p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Linked to job card</p>
-				<p class="mt-2 text-2xl font-semibold tabular-nums text-emerald-800 dark:text-emerald-200">{{ stats.withJobCard }}</p>
+			<div class="portal-card flex items-start gap-4 border-t-2 border-t-brand-600 hover:shadow-md dark:border-t-brand-500">
+				<div class="flex-1 min-w-0">
+					<p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Linked to job card</p>
+					<p class="mt-1.5 text-3xl font-bold tabular-nums text-brand-700 dark:text-brand-300">{{ stats.withJobCard }}</p>
+				</div>
+				<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-950/40">
+					<i class="pi pi-wrench text-brand-600 dark:text-brand-400" style="font-size: 1rem" aria-hidden="true" />
+				</div>
 			</div>
-			<div class="portal-card">
-				<p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Awaiting job card</p>
-				<p class="mt-2 text-2xl font-semibold tabular-nums text-amber-800 dark:text-amber-200">{{ stats.withoutJobCard }}</p>
+			<div class="portal-card flex items-start gap-4 border-t-2 border-t-amber-400 hover:shadow-md dark:border-t-amber-500">
+				<div class="flex-1 min-w-0">
+					<p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Awaiting job card</p>
+					<p class="mt-1.5 text-3xl font-bold tabular-nums text-amber-600 dark:text-amber-300">{{ stats.withoutJobCard }}</p>
+				</div>
+				<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-900/20">
+					<i class="pi pi-clock text-amber-500 dark:text-amber-400" style="font-size: 1rem" aria-hidden="true" />
+				</div>
 			</div>
-			<div class="portal-card">
-				<p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">This week</p>
-				<p class="mt-2 text-2xl font-semibold tabular-nums text-sky-800 dark:text-sky-200">{{ stats.thisWeek }}</p>
-				<p class="mt-1 text-xs text-slate-500">By inspection date</p>
+			<div class="portal-card flex items-start gap-4 border-t-2 border-t-slate-300 hover:shadow-md dark:border-t-slate-600">
+				<div class="flex-1 min-w-0">
+					<p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">This week</p>
+					<p class="mt-1.5 text-3xl font-bold tabular-nums text-slate-900 dark:text-slate-50">{{ stats.thisWeek }}</p>
+					<p class="mt-1 text-xs text-slate-400 dark:text-slate-500">By inspection date</p>
+				</div>
+				<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800">
+					<i class="pi pi-calendar text-slate-400 dark:text-slate-500" style="font-size: 1rem" aria-hidden="true" />
+				</div>
 			</div>
 		</div>
 
 		<div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
 			<div>
-				<h2 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">Vehicle inspections</h2>
+				<h2 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">Vehicle inspections</h2>
 				<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
 					Load the standard checklist, set status and notes per line, save. Create job card when ready (lines added in Desk).
 				</p>
@@ -40,30 +63,36 @@
 		<p v-if="listError" class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
 			{{ listError }}
 		</p>
-		<div class="portal-filter-bar flex flex-col gap-5 xl:flex-row xl:flex-wrap xl:items-end">
-			<div class="min-w-0 flex-1 xl:min-w-[18rem]">
-				<label class="portal-label" for="ins-filter-search">Search</label>
-				<UiInput
-					id="ins-filter-search"
-					v-model="docSearch"
-					type="search"
-					placeholder="ID, appointment, customer, vehicle…"
-					autocomplete="off"
-				/>
+		<div class="portal-filter-bar">
+			<div class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
+				<i class="pi pi-sliders-h text-slate-500 dark:text-slate-400" aria-hidden="true" />
+				<span>Filter inspections</span>
 			</div>
-			<div class="w-full sm:max-w-[11rem]">
-				<label class="portal-label" for="ins-filter-jc">Job card</label>
-				<UiSelect id="ins-filter-jc" v-model="filterJobCard" :options="jobCardFilterOptions" placeholder="All" />
+			<div class="flex flex-col gap-5 xl:flex-row xl:flex-wrap xl:items-end">
+				<div class="min-w-0 flex-1 xl:min-w-[18rem]">
+					<label class="portal-label" for="ins-filter-search">Search</label>
+					<UiInput
+						id="ins-filter-search"
+						v-model="docSearch"
+						type="search"
+						placeholder="ID, appointment, customer, vehicle…"
+						autocomplete="off"
+					/>
+				</div>
+				<div class="w-full sm:max-w-[11rem]">
+					<label class="portal-label" for="ins-filter-jc">Job card</label>
+					<UiSelect id="ins-filter-jc" v-model="filterJobCard" :options="jobCardFilterOptions" placeholder="All" />
+				</div>
+				<div class="w-full sm:max-w-[11rem]">
+					<label class="portal-label" for="ins-filter-from">From date</label>
+					<UiInput id="ins-filter-from" v-model="filterDateFrom" type="date" />
+				</div>
+				<div class="w-full sm:max-w-[11rem]">
+					<label class="portal-label" for="ins-filter-to">To date</label>
+					<UiInput id="ins-filter-to" v-model="filterDateTo" type="date" />
+				</div>
+				<UiButton type="button" variant="secondary" class="shrink-0" @click="clearListFilters">Clear filters</UiButton>
 			</div>
-			<div class="w-full sm:max-w-[11rem]">
-				<label class="portal-label" for="ins-filter-from">From date</label>
-				<UiInput id="ins-filter-from" v-model="filterDateFrom" type="date" />
-			</div>
-			<div class="w-full sm:max-w-[11rem]">
-				<label class="portal-label" for="ins-filter-to">To date</label>
-				<UiInput id="ins-filter-to" v-model="filterDateTo" type="date" />
-			</div>
-			<UiButton type="button" variant="secondary" class="shrink-0" @click="clearListFilters">Clear filters</UiButton>
 		</div>
 
 		<div class="portal-table-wrap">
@@ -94,66 +123,103 @@
 					{{ allRows.length ? "No matches — adjust filters" : "No inspections" }}
 				</template>
 				<Column selection-mode="multiple" header-style="width: 3rem" />
-				<Column field="name" header="ID">
-					<template #body="{ data }">
-						<span class="font-mono text-sm font-semibold text-slate-800 dark:text-slate-100">{{ data.name }}</span>
-					</template>
-				</Column>
-				<Column field="appointment" header="Appointment">
-					<template #body="{ data }">
-						<span class="font-mono text-xs text-slate-600 dark:text-slate-500">{{ data.appointment || "—" }}</span>
-					</template>
-				</Column>
-				<Column field="customer" header="Customer">
-					<template #body="{ data }">
-						<span class="text-slate-800 dark:text-slate-200">{{ data.customer || "—" }}</span>
-					</template>
-				</Column>
-				<Column field="vehicle" header="Vehicle">
-					<template #body="{ data }">
-						<span class="text-slate-600 dark:text-slate-400">{{ data.vehicle || "—" }}</span>
-					</template>
-				</Column>
-				<Column field="inspection_date" header="Date">
-					<template #body="{ data }">
-						<span class="tabular-nums text-slate-600 dark:text-slate-400">{{ data.inspection_date || "—" }}</span>
-					</template>
-				</Column>
-				<Column field="job_card" header="Job card">
-					<template #body="{ data }">
-						<span class="font-mono text-xs text-slate-600 dark:text-slate-500">{{ data.job_card || "—" }}</span>
-					</template>
-				</Column>
-				<Column header="Actions" header-style="min-width: 14rem; width: 18rem" body-style="min-width: 14rem">
-					<template #body="{ data }">
-						<div class="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-nowrap sm:items-stretch">
-							<Button
-								as="a"
-								:href="deskFormUrl('Vehicle Inspection', data.name)"
-								target="_blank"
-								rel="noopener noreferrer"
-								severity="secondary"
-								outlined
-								size="small"
-								class="portal-pv-desk-link !shrink-0"
-								icon="pi pi-external-link"
-								label="Open in Desk"
-								@click.stop
-							/>
-							<Button
-								v-if="data.job_card"
-								size="small"
-								severity="help"
-								class="!shrink-0 !whitespace-nowrap"
-								label="Job card"
-								icon="pi pi-wrench"
-								@click.stop="goJobCard(data.job_card)"
-							/>
+				<Column field="appointment" header-style="min-width: 11rem">
+					<template #header>
+						<div class="inline-flex items-center gap-2 font-semibold text-slate-700 dark:text-slate-200">
+							<i class="pi pi-calendar" aria-hidden="true" />
+							<span>Appointment</span>
 						</div>
+					</template>
+					<template #body="{ data }">
+						<button
+							v-if="data.appointment"
+							type="button"
+							class="font-mono text-xs font-medium text-brand-600 underline-offset-2 hover:underline dark:text-brand-400"
+							@click.stop="openApptDrawer(data.appointment)"
+						>{{ data.appointment }}</button>
+						<span v-else class="font-mono text-xs text-slate-400 dark:text-slate-500">—</span>
+					</template>
+				</Column>
+				<Column field="customer" header-style="min-width: 12rem">
+					<template #header>
+						<div class="inline-flex items-center gap-2 font-semibold text-slate-700 dark:text-slate-200">
+							<i class="pi pi-user" aria-hidden="true" />
+							<span>Customer</span>
+						</div>
+					</template>
+					<template #body="{ data }">
+						<span class="text-sm font-medium text-slate-800 dark:text-slate-100">{{ data.customer || "—" }}</span>
+					</template>
+				</Column>
+				<Column field="vehicle" header-style="min-width: 10rem">
+					<template #header>
+						<div class="inline-flex items-center gap-2 font-semibold text-slate-700 dark:text-slate-200">
+							<i class="pi pi-car" aria-hidden="true" />
+							<span>Vehicle</span>
+						</div>
+					</template>
+					<template #body="{ data }">
+						<span class="text-sm text-slate-600 dark:text-slate-400">{{ data.vehicle || "—" }}</span>
+					</template>
+				</Column>
+				<Column field="inspection_date" header-style="min-width: 9rem">
+					<template #header>
+						<div class="inline-flex items-center gap-2 font-semibold text-slate-700 dark:text-slate-200">
+							<i class="pi pi-clock" aria-hidden="true" />
+							<span>Date</span>
+						</div>
+					</template>
+					<template #body="{ data }">
+						<span class="text-sm tabular-nums text-slate-600 dark:text-slate-400">{{ data.inspection_date || "—" }}</span>
+					</template>
+				</Column>
+				<Column field="job_card" header-style="min-width: 11rem">
+					<template #header>
+						<div class="inline-flex items-center gap-2 font-semibold text-slate-700 dark:text-slate-200">
+							<i class="pi pi-wrench" aria-hidden="true" />
+							<span>Job card</span>
+						</div>
+					</template>
+					<template #body="{ data }">
+						<button
+							v-if="data.job_card"
+							type="button"
+							class="font-mono text-xs font-medium text-brand-600 underline-offset-2 hover:underline dark:text-brand-400"
+							@click.stop="openJobCardDrawer(data.job_card)"
+						>{{ data.job_card }}</button>
+						<span v-else class="font-mono text-xs text-slate-400 dark:text-slate-500">—</span>
+					</template>
+				</Column>
+				<Column header-style="min-width: 10rem; width: 12rem" body-style="min-width: 10rem">
+					<template #header>
+						<div class="inline-flex items-center gap-2 font-semibold text-slate-700 dark:text-slate-200">
+							<i class="pi pi-bolt" aria-hidden="true" />
+							<span>Actions</span>
+						</div>
+					</template>
+					<template #body="{ data }">
+						<Button
+							as="a"
+							:href="deskFormUrl('Vehicle Inspection', data.name)"
+							target="_blank"
+							rel="noopener noreferrer"
+							size="small"
+							class="portal-action-secondary"
+							icon="pi pi-external-link"
+							label="Open in Desk"
+							@click.stop
+						/>
 					</template>
 				</Column>
 			</DataTable>
 		</div>
+
+		<WxAppointmentDrawer
+			v-model:open="apptDrawerOpen"
+			:appointment-id="apptDrawerId"
+			@updated="loadList"
+		/>
+		<WxJobCardDrawer v-model:open="jobCardDrawerOpen" :job-card-id="jobCardDrawerId" />
 
 		<Teleport to="body">
 			<Transition
@@ -524,6 +590,10 @@ import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import Button from "primevue/button";
 import WxBreadcrumb from "../components/layout/WxBreadcrumb.vue";
+import WxToast from "../components/ui/WxToast.vue";
+import WxConfirmPopup from "../components/ui/WxConfirmPopup.vue";
+import WxAppointmentDrawer from "../components/ui/WxAppointmentDrawer.vue";
+import WxJobCardDrawer from "../components/ui/WxJobCardDrawer.vue";
 import UiButton from "../components/ui/UiButton.vue";
 import UiInput from "../components/ui/UiInput.vue";
 import UiSelect from "../components/ui/UiSelect.vue";
@@ -661,6 +731,24 @@ const jcWarehousePlaceholder = computed(() => {
 	if (jcWarehousesLoading.value) return "Loading warehouses…";
 	return "Select warehouse…";
 });
+
+// Side-drawer peeks (appointment + job card)
+const apptDrawerOpen = ref(false);
+const apptDrawerId = ref("");
+const jobCardDrawerOpen = ref(false);
+const jobCardDrawerId = ref("");
+
+function openApptDrawer(id) {
+	if (!id) return;
+	apptDrawerId.value = String(id);
+	apptDrawerOpen.value = true;
+}
+
+function openJobCardDrawer(id) {
+	if (!id) return;
+	jobCardDrawerId.value = String(id);
+	jobCardDrawerOpen.value = true;
+}
 
 function goJobCard(name) {
 	if (!name) return;

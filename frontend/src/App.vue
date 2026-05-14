@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="flex min-h-screen bg-slate-100/90 text-slate-900 dark:bg-[#0B0F19] dark:text-slate-100"
+		class="flex min-h-screen bg-slate-50 text-slate-900 dark:bg-[#0B0F19] dark:text-slate-100"
 	>
 		<!-- Sidebar — Workshop Executive -->
 		<aside
@@ -9,7 +9,7 @@
 		>
 			<div class="flex h-16 items-center gap-3 border-b border-slate-100 px-4 dark:border-slate-800">
 				<div
-					class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-600 text-sm font-bold text-white shadow-sm"
+					class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-sm font-bold text-white shadow-sm"
 				>
 					W
 				</div>
@@ -18,13 +18,13 @@
 					<div class="truncate text-xs text-slate-500 dark:text-slate-400">Operations</div>
 				</div>
 			</div>
-			<nav class="flex flex-1 flex-col gap-1 p-3">
+			<nav class="flex flex-1 flex-col gap-1.5 p-3">
 				<RouterLink
 					v-for="item in navItems"
 					:key="item.to"
 					:to="item.to"
-					class="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-100"
-					active-class="!bg-sky-50 !text-sky-900 dark:!bg-sky-950/50 dark:!text-sky-200"
+					class="portal-nav-link"
+					active-class="portal-nav-link-active"
 				>
 					<span class="shrink-0 text-slate-400 dark:text-slate-500" aria-hidden="true" v-html="item.icon" />
 					<span>{{ item.label }}</span>
@@ -70,7 +70,7 @@
 							v-model="docSearch"
 							type="search"
 							autocomplete="off"
-							class="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 py-2.5 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-400 shadow-inner focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-600 dark:bg-slate-800/50 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-sky-400"
+							class="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 py-2.5 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-brand-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/15 dark:border-slate-600 dark:bg-slate-800/50 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-brand-400"
 							placeholder="Search…"
 						/>
 					</div>
@@ -160,7 +160,7 @@
 					:key="'m-' + item.to"
 					:to="item.to"
 					class="flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl px-3 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800/70"
-					active-class="!bg-sky-50 !text-sky-900 dark:!bg-sky-950/50 dark:!text-sky-200"
+					active-class="!bg-brand-50 !text-brand-700 dark:!bg-brand-950/40 dark:!text-brand-200"
 				>
 					<span class="shrink-0 opacity-80" aria-hidden="true" v-html="item.iconSm" />
 					{{ item.label }}
@@ -179,7 +179,7 @@
 					id="wx-header-search-mobile"
 					v-model="docSearch"
 					type="search"
-					class="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-600 dark:bg-slate-800"
+					class="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500/15 dark:border-slate-600 dark:bg-slate-800"
 					placeholder="Search…"
 					autocomplete="off"
 				/>
