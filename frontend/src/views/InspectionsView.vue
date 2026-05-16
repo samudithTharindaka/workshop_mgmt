@@ -241,136 +241,146 @@
 						@click.stop
 					>
 					<div class="flex max-h-screen min-h-0 flex-col">
-					<div class="sticky top-0 z-20 shrink-0 border-b border-slate-200 dark:border-slate-800 bg-slate-100/95 dark:bg-slate-900/95 px-6 py-4 backdrop-blur-sm">
-						<div class="flex flex-wrap items-start justify-between gap-3">
+					<!-- Gradient header -->
+					<div class="relative shrink-0 overflow-hidden bg-gradient-to-br from-brand-500 to-brand-700 px-6 pb-6 pt-6 shadow-sm dark:from-brand-700 dark:to-brand-900">
+						<div
+							class="pointer-events-none absolute inset-0 opacity-[0.15] mix-blend-overlay"
+							style="background-image: url('data:image/svg+xml,%3Csvg width=\'16\' height=\'16\' viewBox=\'0 0 16 16\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M8 0l8 8-8 8-8-8 8-8zm0 2L2 8l6 6 6-6-6-6z\' fill=\'%23ffffff\' fill-rule=\'evenodd\'/%3E%3C/svg%3E');"
+							aria-hidden="true"
+						/>
+						<div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 to-transparent mix-blend-overlay" aria-hidden="true" />
+						<div class="relative z-10 flex items-start justify-between gap-3">
 							<div class="min-w-0">
-								<h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Inspection</h3>
-								<p class="mt-0.5 font-mono text-sm text-blue-600 dark:text-blue-400">{{ editName }}</p>
-								<Button
-									v-if="editName"
-									as="a"
-									:href="deskFormUrl('Vehicle Inspection', editName)"
-									target="_blank"
-									rel="noopener noreferrer"
-									class="portal-pv-desk-link mt-2"
-									severity="secondary"
-									outlined
-									size="small"
-									icon="pi pi-external-link"
-									label="Open in Desk"
-								/>
+								<p class="text-xs font-semibold uppercase tracking-wider text-brand-100">Vehicle Inspection</p>
+								<p class="mt-1 truncate font-mono text-2xl font-bold text-white drop-shadow-sm">{{ editName || "…" }}</p>
+								<p v-if="editDoc?.customer" class="mt-1 truncate text-sm font-medium text-brand-50">{{ editDoc.customer }}</p>
+								<p v-if="editDoc?.vehicle" class="mt-0.5 text-sm text-brand-100">
+									<i class="pi pi-car mr-1.5 opacity-70" style="font-size: 12px" aria-hidden="true" />{{ editDoc.vehicle }}
+								</p>
+								<div class="mt-4 flex flex-wrap items-center gap-2">
+									<Button
+										v-if="editName"
+										as="a"
+										:href="deskFormUrl('Vehicle Inspection', editName)"
+										target="_blank"
+										rel="noopener noreferrer"
+										class="!inline-flex !items-center !gap-2 !rounded-lg !border-white/30 !bg-white/10 !px-3 !py-1.5 !text-xs !font-semibold !text-white backdrop-blur-md transition hover:!bg-white/20"
+										icon="pi pi-external-link"
+										label="Open in Desk"
+									/>
+									<span v-if="editDoc?.job_card" class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100/90 px-2.5 py-1 text-xs font-semibold text-emerald-800 shadow-sm">
+										<i class="pi pi-link" style="font-size: 9px" aria-hidden="true" />Job card linked
+									</span>
+									<span v-else-if="editDoc" class="inline-flex items-center gap-1.5 rounded-full bg-amber-100/90 px-2.5 py-1 text-xs font-semibold text-amber-900 shadow-sm">
+										<i class="pi pi-clock" style="font-size: 9px" aria-hidden="true" />Awaiting job card
+									</span>
+								</div>
 							</div>
-							<div class="flex flex-wrap gap-2">
-								<button
-									type="button"
-									class="rounded-lg border border-slate-300 dark:border-slate-700 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800"
-									:disabled="editorLoading || saveLoading"
-									@click="loadStandardChecklist"
-								>
-									Load standard checklist
-								</button>
-								<button
-									type="button"
-									class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 disabled:opacity-50"
-									:disabled="editorLoading || saveLoading || !editDoc"
-									@click="saveInspection"
-								>
-									{{ saveLoading ? "Saving…" : "Save" }}
-								</button>
-								<button
-									type="button"
-									class="rounded-lg border border-slate-300 dark:border-slate-700 px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800"
-									@click="closeEditor"
-								>
-									Close
-								</button>
-							</div>
+							<button
+								type="button"
+								class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md transition hover:bg-white/20"
+								aria-label="Close"
+								@click="closeEditor"
+							>
+								<i class="pi pi-times" aria-hidden="true" />
+							</button>
 						</div>
 					</div>
 
+					<!-- Action bar -->
+					<div class="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-6 py-3 dark:border-slate-800 dark:bg-slate-900">
+						<button
+							type="button"
+							class="portal-action-secondary"
+							:disabled="editorLoading || saveLoading"
+							@click="loadStandardChecklist"
+						>
+							<i class="pi pi-refresh" style="font-size: 11px" aria-hidden="true" />
+							Load standard checklist
+						</button>
+						<button
+							type="button"
+							class="portal-action-primary"
+							:disabled="editorLoading || saveLoading || !editDoc"
+							@click="saveInspection"
+						>
+							<i class="pi pi-save" style="font-size: 11px" aria-hidden="true" />
+							{{ saveLoading ? "Saving…" : "Save changes" }}
+						</button>
+					</div>
+
 					<div class="min-h-0 flex-1 overflow-y-auto px-6 py-6">
-					<div v-if="editorLoading" class="py-16 text-center text-sm text-slate-600 dark:text-slate-500">Loading…</div>
+					<div v-if="editorLoading" class="flex flex-col items-center py-20 text-slate-500 dark:text-slate-500">
+						<i class="pi pi-spin pi-spinner mb-3 text-3xl opacity-50" aria-hidden="true" />
+						<p class="text-sm">Loading inspection…</p>
+					</div>
 					<div v-else-if="editDoc" class="space-y-6">
-						<div class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
-							<div>
-								<label class="portal-label">Appointment</label>
-								<input
-									:value="editDoc.appointment || ''"
-									disabled
-									class="portal-input opacity-80"
-								/>
-							</div>
-							<div>
-								<label class="portal-label">Customer</label>
-								<input
-									:value="editDoc.customer || ''"
-									disabled
-									class="portal-input opacity-80"
-								/>
-							</div>
-							<div>
-								<label class="portal-label">Vehicle</label>
-								<input
-									:value="editDoc.vehicle || ''"
-									disabled
-									class="portal-input opacity-80"
-								/>
-							</div>
+						<!-- Editable fields -->
+						<div class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
 							<div>
 								<label class="portal-label">Inspection date</label>
-								<input
-									v-model="editDoc.inspection_date"
-									type="date"
-									class="portal-input"
-								/>
+								<input v-model="editDoc.inspection_date" type="date" class="portal-input" />
 							</div>
-							<div class="sm:col-span-2">
-								<label class="portal-label">Inspector (optional)</label>
-								<input
-									v-model="editDoc.inspector"
-									class="portal-input"
-									placeholder="User ID"
-								/>
+							<div>
+								<label class="portal-label">Inspector <span class="font-normal normal-case text-slate-400">(optional)</span></label>
+								<input v-model="editDoc.inspector" class="portal-input" placeholder="User ID" />
 							</div>
-							<div class="flex flex-wrap items-end gap-x-2 gap-y-1 sm:col-span-2">
-								<a
-									v-if="editDoc.appointment"
-									:href="deskFormUrl('Service Appointment', editDoc.appointment)"
-									target="_blank"
-									class="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
-									>Appointment</a
-								>
-								<template v-if="editDoc.job_card">
-									<span v-if="editDoc.appointment" class="text-slate-600 dark:text-slate-500">·</span>
-									<a
-										:href="deskFormUrl('Job Card', editDoc.job_card)"
-										target="_blank"
-										class="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
-										>Job card (Desk)</a
-									>
-									<button
-										type="button"
-										class="text-xs font-medium text-emerald-600 hover:underline dark:text-emerald-400"
-										@click="goJobCardFromEditor(editDoc.job_card)"
-									>
-										Job card (workshop)
-									</button>
-								</template>
-							</div>
+						</div>
+
+						<!-- Linked record chips -->
+						<div v-if="editDoc.appointment || editDoc.job_card" class="flex flex-wrap items-center gap-2">
+							<a
+								v-if="editDoc.appointment"
+								:href="deskFormUrl('Service Appointment', editDoc.appointment)"
+								target="_blank"
+								rel="noopener noreferrer"
+								class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 transition hover:border-brand-300 hover:text-brand-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-500 dark:hover:text-brand-300"
+							>
+								<i class="pi pi-calendar" style="font-size: 10px" aria-hidden="true" />
+								<span class="font-mono">{{ editDoc.appointment }}</span>
+								<i class="pi pi-external-link opacity-50" style="font-size: 9px" aria-hidden="true" />
+							</a>
+							<a
+								v-if="editDoc.job_card"
+								:href="deskFormUrl('Job Card', editDoc.job_card)"
+								target="_blank"
+								rel="noopener noreferrer"
+								class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 transition hover:border-brand-300 hover:text-brand-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-500 dark:hover:text-brand-300"
+							>
+								<i class="pi pi-wrench" style="font-size: 10px" aria-hidden="true" />
+								<span class="font-mono">{{ editDoc.job_card }}</span>
+								<i class="pi pi-external-link opacity-50" style="font-size: 9px" aria-hidden="true" />
+							</a>
+							<button
+								v-if="editDoc.job_card"
+								type="button"
+								class="inline-flex items-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-2.5 py-1.5 text-xs font-semibold text-brand-700 transition hover:border-brand-300 hover:bg-brand-100 dark:border-brand-700/40 dark:bg-brand-950/40 dark:text-brand-300"
+								@click="goJobCardFromEditor(editDoc.job_card)"
+							>
+								<i class="pi pi-arrow-right" style="font-size: 10px" aria-hidden="true" />
+								Open in workshop
+							</button>
 						</div>
 
 						<div
 							v-if="editDoc.name && !editDoc.job_card"
-							class="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-4"
+							class="flex flex-wrap items-center gap-4 rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-4 dark:border-amber-700/40 dark:from-amber-950/30 dark:to-orange-950/20"
 						>
+							<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
+								<i class="pi pi-bolt" style="font-size: 16px" aria-hidden="true" />
+							</div>
+							<div class="min-w-0 flex-1">
+								<p class="text-sm font-semibold text-amber-900 dark:text-amber-200">Ready to create the job card?</p>
+								<p class="mt-0.5 text-xs text-amber-800/80 dark:text-amber-300/80">Pick company and warehouse on the next step. Lines are added on the job card itself.</p>
+							</div>
 							<button
 								type="button"
-								class="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-amber-500"
+								class="portal-action-primary !bg-amber-600 hover:!bg-amber-700 focus:!ring-amber-500/35 active:!bg-amber-800"
 								@click="openJobCardFromInspection"
 							>
+								<i class="pi pi-plus" style="font-size: 11px" aria-hidden="true" />
 								Create job card
 							</button>
-							<span class="text-xs text-slate-600 dark:text-slate-500">Company and warehouse in Desk. Add lines on the job card in Desk.</span>
 						</div>
 
 						<div class="portal-table-wrap overflow-hidden">
@@ -388,66 +398,67 @@
 									<tbody>
 										<tr v-for="(row, idx) in editDoc.inspection_items || []" :key="row.name || 'n-' + idx">
 											<td class="align-top">
-												<select
-													v-model="row.section"
-													class="portal-input py-2 text-xs"
-												>
+												<select v-model="row.section" class="portal-select py-1.5 text-xs">
 													<option v-for="s in SECTION_OPTIONS" :key="s" :value="s">{{ s }}</option>
 												</select>
 											</td>
 											<td class="align-top">
-												<input
-													v-model="row.check_item"
-													class="portal-input py-2 text-xs"
-													placeholder="Check item"
-												/>
+												<input v-model="row.check_item" class="portal-input py-1.5 text-xs" placeholder="Check item" />
 											</td>
 											<td class="align-top">
-												<div class="mb-2 flex gap-2">
+												<div class="mb-2 flex gap-1.5">
 													<button
 														type="button"
-														class="flex-1 rounded-lg border border-emerald-800/80 bg-emerald-950/40 px-2 py-1.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300 transition hover:bg-emerald-900/50"
+														class="inline-flex flex-1 items-center justify-center gap-1 rounded-lg border px-2 py-1.5 text-xs font-semibold transition"
+														:class="
+															row.status === STATUS_QUICK_OK
+																? 'border-emerald-600 bg-emerald-600 text-white shadow-sm hover:bg-emerald-500'
+																: 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/40'
+														"
 														title="Mark OK"
 														@click="row.status = STATUS_QUICK_OK"
 													>
+														<i class="pi pi-check" style="font-size: 10px" aria-hidden="true" />
 														OK
 													</button>
 													<button
 														type="button"
-														class="flex-1 rounded-lg border border-amber-800/80 bg-amber-950/40 px-2 py-1.5 text-xs font-semibold text-amber-200 transition hover:bg-amber-900/50"
+														class="inline-flex flex-1 items-center justify-center gap-1 rounded-lg border px-2 py-1.5 text-xs font-semibold transition"
+														:class="
+															row.status === STATUS_QUICK_REPORT
+																? 'border-amber-600 bg-amber-600 text-white shadow-sm hover:bg-amber-500'
+																: 'border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-300 hover:bg-amber-100 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300 dark:hover:bg-amber-900/40'
+														"
 														title="Needs attention"
 														@click="row.status = STATUS_QUICK_REPORT"
 													>
+														<i class="pi pi-exclamation-triangle" style="font-size: 10px" aria-hidden="true" />
 														Report
 													</button>
 												</div>
-												<select
-													v-model="row.status"
-													class="portal-input py-2 text-xs"
-												>
+												<select v-model="row.status" class="portal-select py-1.5 text-xs">
 													<option v-for="st in STATUS_OPTIONS" :key="st" :value="st">{{ st }}</option>
 												</select>
 											</td>
 											<td class="align-top">
-												<textarea
-													v-model="row.notes"
-													rows="2"
-													class="portal-input resize-y text-xs"
-												/>
+												<textarea v-model="row.notes" rows="2" class="portal-input resize-y py-1.5 text-xs" />
 											</td>
 											<td class="align-top">
 												<button
 													type="button"
-													class="text-xs font-medium text-red-400 hover:text-red-700 dark:text-red-300"
+													class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500 dark:text-slate-600 dark:hover:bg-red-950/30 dark:hover:text-red-400"
+													aria-label="Remove row"
 													@click="removeLine(idx)"
 												>
-													Remove
+													<i class="pi pi-times" style="font-size: 11px" aria-hidden="true" />
 												</button>
 											</td>
 										</tr>
 										<tr v-if="!(editDoc.inspection_items || []).length">
-											<td colspan="5" class="py-10 text-center text-slate-600 dark:text-slate-500">
-												No lines — use “Load standard checklist” or add rows in Desk.
+											<td colspan="5" class="py-14 text-center">
+												<i class="pi pi-clipboard mb-2 block text-3xl text-slate-300 dark:text-slate-700" aria-hidden="true" />
+												<p class="text-sm font-medium text-slate-500 dark:text-slate-400">No checklist items yet</p>
+												<p class="mt-0.5 text-xs text-slate-400 dark:text-slate-500">Click "Load standard checklist" above, or "Add line" to start.</p>
 											</td>
 										</tr>
 									</tbody>
@@ -457,16 +468,25 @@
 
 						<button
 							type="button"
-							class="text-sm font-semibold text-sky-700 hover:text-sky-900 dark:text-sky-400 dark:hover:text-sky-300"
+							class="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-brand-400 hover:bg-brand-50 hover:text-brand-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-500 dark:hover:bg-brand-950/30 dark:hover:text-brand-300"
 							@click="addBlankLine"
 						>
-							+ Add blank line
+							<i class="pi pi-plus" style="font-size: 10px" aria-hidden="true" />
+							Add blank line
 						</button>
 					</div>
-					<p v-else-if="editorError" class="text-sm text-red-400">{{ editorError }}</p>
+					<p
+						v-else-if="editorError"
+						class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
+					>
+						<i class="pi pi-times-circle mr-1.5 opacity-70" aria-hidden="true" />{{ editorError }}
+					</p>
 
-					<p v-if="editorBanner" class="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
-						{{ editorBanner }}
+					<p
+						v-if="editorBanner"
+						class="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700/40 dark:bg-amber-950/30 dark:text-amber-200"
+					>
+						<i class="pi pi-info-circle mr-1.5 opacity-70" aria-hidden="true" />{{ editorBanner }}
 					</p>
 					</div>
 					</div>
