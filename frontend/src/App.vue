@@ -230,8 +230,8 @@ const iconClipboardSm =
 const navItems = [
 	{ to: "/", label: "Dashboard", icon: iconDashboard, iconSm: iconDashboardSm },
 	{ to: "/appointments", label: "Appointments", icon: iconCalendar, iconSm: iconCalendarSm },
-	{ to: "/job-cards", label: "Job cards", icon: iconWrench, iconSm: iconWrenchSm },
 	{ to: "/inspections", label: "Inspections", icon: iconClipboard, iconSm: iconClipboardSm },
+	{ to: "/job-cards", label: "Job cards", icon: iconWrench, iconSm: iconWrenchSm },
 ];
 
 const pageTitle = computed(() => {

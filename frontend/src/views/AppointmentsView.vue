@@ -552,20 +552,54 @@
 					<p class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-500">Customer, vehicle, and schedule.</p>
 					<div class="mt-6 space-y-4">
 						<div>
-							<label class="portal-label">Customer</label>
-							<select v-model="form.customer" class="portal-input" :disabled="loadingCustomers" @change="onCustomerChange">
-								<option value="">{{ loadingCustomers ? "Loading customers…" : "Select customer…" }}</option>
-								<option v-for="c in customers" :key="c.name" :value="c.name">{{ formatCustomerOption(c) }}</option>
-							</select>
+							<div class="mb-2 flex items-center justify-between gap-2">
+								<label class="portal-label !mb-0">Customer</label>
+								<button
+									type="button"
+									class="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-brand-700 transition hover:bg-brand-50 dark:text-brand-300 dark:hover:bg-brand-950/30"
+									@click="openNewCustomerModal"
+								>
+									<i class="pi pi-plus" style="font-size: 9px" aria-hidden="true" />
+									New
+								</button>
+							</div>
+							<UiSelect
+								v-model="form.customer"
+								:options="customerSelectOptions"
+								:filter="true"
+								filter-placeholder="Search customers…"
+								:placeholder="loadingCustomers ? 'Loading customers…' : 'Select customer…'"
+								:disabled="loadingCustomers"
+								:pt="customerVehicleSelectPt"
+								@update:model-value="onCustomerChange"
+							/>
 						</div>
 						<div>
-							<label class="portal-label">Vehicle</label>
-							<select v-model="form.vehicle" class="portal-input" :disabled="!form.customer || loadingVehicles">
-								<option value="">{{ vehicleSelectPlaceholder }}</option>
-								<option v-for="v in vehicles" :key="v.name" :value="v.name">{{ formatVehicleOption(v) }}</option>
-							</select>
-							<p v-if="form.customer && !loadingVehicles && !vehicles.length" class="mt-2 text-xs text-amber-500/90">
-								No vehicles for this customer.
+							<div class="mb-2 flex items-center justify-between gap-2">
+								<label class="portal-label !mb-0">Vehicle</label>
+								<button
+									type="button"
+									class="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-brand-700 transition hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-brand-300 dark:hover:bg-brand-950/30"
+									:disabled="!form.customer"
+									:title="form.customer ? 'Add a vehicle for this customer' : 'Pick a customer first'"
+									@click="openNewVehicleModal"
+								>
+									<i class="pi pi-plus" style="font-size: 9px" aria-hidden="true" />
+									New
+								</button>
+							</div>
+							<UiSelect
+								v-model="form.vehicle"
+								:options="vehicleSelectOptions"
+								:filter="vehicles.length > 5"
+								filter-placeholder="Search vehicles…"
+								:placeholder="vehicleSelectPlaceholder"
+								:disabled="!form.customer || loadingVehicles"
+								:pt="customerVehicleSelectPt"
+							/>
+							<p v-if="form.customer && !loadingVehicles && !vehicles.length" class="mt-2 inline-flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+								<i class="pi pi-info-circle opacity-70" style="font-size: 11px" aria-hidden="true" />
+								No vehicles for this customer — click "+ New" to add one.
 							</p>
 						</div>
 						<div>
@@ -590,6 +624,135 @@
 					<div class="mt-8 flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-6 dark:border-slate-700">
 						<UiButton type="button" variant="secondary" @click="modalOpen = false">Cancel</UiButton>
 						<UiButton type="button" :disabled="saving" @click="submit">{{ saving ? "Saving…" : "Create" }}</UiButton>
+					</div>
+				</div>
+			</div>
+		</Teleport>
+
+		<!-- Quick-create: new customer -->
+		<Teleport to="body">
+			<div
+				v-if="newCustomerOpen"
+				class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+				@click.self="newCustomerOpen = false"
+			>
+				<div class="portal-modal-panel" role="dialog" aria-modal="true">
+					<div class="flex items-start gap-3">
+						<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-300">
+							<i class="pi pi-user-plus" style="font-size: 16px" aria-hidden="true" />
+						</div>
+						<div class="min-w-0">
+							<h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">New customer</h3>
+							<p class="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Quick-create. You can fill in the rest in Desk later.</p>
+						</div>
+					</div>
+					<div class="mt-6 space-y-4">
+						<div>
+							<label class="portal-label">Customer name <span class="text-red-500">*</span></label>
+							<input
+								v-model="newCustomerForm.customer_name"
+								class="portal-input"
+								placeholder="e.g. Acme Industries"
+								autofocus
+								@keydown.enter.prevent="submitNewCustomer"
+							/>
+						</div>
+						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<div>
+								<label class="portal-label">Mobile <span class="font-normal normal-case text-slate-400">(optional)</span></label>
+								<input v-model="newCustomerForm.mobile_no" class="portal-input" placeholder="+1 555 0123" />
+							</div>
+							<div>
+								<label class="portal-label">Email <span class="font-normal normal-case text-slate-400">(optional)</span></label>
+								<input v-model="newCustomerForm.email_id" type="email" class="portal-input" placeholder="contact@acme.com" />
+							</div>
+						</div>
+					</div>
+					<p v-if="newCustomerError" class="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
+						<i class="pi pi-times-circle mr-1.5 opacity-70" aria-hidden="true" />{{ newCustomerError }}
+					</p>
+					<div class="mt-8 flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-6 dark:border-slate-700">
+						<UiButton type="button" variant="secondary" @click="newCustomerOpen = false">Cancel</UiButton>
+						<UiButton
+							type="button"
+							:disabled="newCustomerSaving || !newCustomerForm.customer_name.trim()"
+							@click="submitNewCustomer"
+						>
+							{{ newCustomerSaving ? "Creating…" : "Create customer" }}
+						</UiButton>
+					</div>
+				</div>
+			</div>
+		</Teleport>
+
+		<!-- Quick-create: new vehicle -->
+		<Teleport to="body">
+			<div
+				v-if="newVehicleOpen"
+				class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+				@click.self="newVehicleOpen = false"
+			>
+				<div class="portal-modal-panel" role="dialog" aria-modal="true">
+					<div class="flex items-start gap-3">
+						<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-300">
+							<i class="pi pi-car" style="font-size: 16px" aria-hidden="true" />
+						</div>
+						<div class="min-w-0">
+							<h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100">New vehicle</h3>
+							<p class="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+								For customer
+								<span class="font-mono text-xs font-semibold text-brand-700 dark:text-brand-300">{{ form.customer }}</span>
+							</p>
+						</div>
+					</div>
+					<div class="mt-6 space-y-4">
+						<div>
+							<label class="portal-label">License plate <span class="text-red-500">*</span></label>
+							<input
+								v-model="newVehicleForm.license_plate"
+								class="portal-input"
+								placeholder="ABC-1234"
+								autofocus
+								@keydown.enter.prevent="submitNewVehicle"
+							/>
+						</div>
+						<div class="grid grid-cols-2 gap-4">
+							<div>
+								<label class="portal-label">Make</label>
+								<input v-model="newVehicleForm.make" class="portal-input" placeholder="Toyota" />
+							</div>
+							<div>
+								<label class="portal-label">Model</label>
+								<input v-model="newVehicleForm.model" class="portal-input" placeholder="Corolla" />
+							</div>
+						</div>
+						<div class="grid grid-cols-2 gap-4">
+							<div>
+								<label class="portal-label">Year</label>
+								<input v-model="newVehicleForm.year" type="number" min="1900" max="2099" class="portal-input" placeholder="2024" />
+							</div>
+							<div>
+								<label class="portal-label">Color</label>
+								<input v-model="newVehicleForm.color" class="portal-input" placeholder="Black" />
+							</div>
+						</div>
+						<div>
+							<label class="portal-label">VIN <span class="font-normal normal-case text-slate-400">(optional)</span></label>
+							<input v-model="newVehicleForm.vin" class="portal-input" placeholder="17-character VIN" />
+						</div>
+					</div>
+					<p v-if="newVehicleError" class="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
+						<i class="pi pi-times-circle mr-1.5 opacity-70" aria-hidden="true" />{{ newVehicleError }}
+					</p>
+					<div class="mt-8 flex flex-wrap justify-end gap-3 border-t border-slate-200 pt-6 dark:border-slate-700">
+						<UiButton type="button" variant="secondary" @click="newVehicleOpen = false">Cancel</UiButton>
+						<UiButton
+							type="button"
+							:disabled="newVehicleSaving || !newVehicleForm.license_plate.trim()"
+							@click="submitNewVehicle"
+						>
+							{{ newVehicleSaving ? "Creating…" : "Create vehicle" }}
+						</UiButton>
 					</div>
 				</div>
 			</div>
@@ -957,9 +1120,225 @@ const {
 	resetPickerLists,
 } = useCustomerVehicleSelects(form);
 
+// Customer + vehicle options shaped for UiSelect (PrimeVue Select)
+const customerSelectOptions = computed(() =>
+	customers.value.map((c) => ({ label: formatCustomerOption(c), value: c.name }))
+);
+const vehicleSelectOptions = computed(() =>
+	vehicles.value.map((v) => ({ label: formatVehicleOption(v), value: v.name }))
+);
+
+// Shared PrimeVue Select PT: clean, light, brand-aligned overlay
+const customerVehicleSelectPt = {
+	root: {
+		style: {
+			background: "#ffffff",
+			border: "1px solid #e2e8f0",
+			borderRadius: "12px",
+			minHeight: "2.75rem",
+			height: "2.75rem",
+			display: "flex",
+			alignItems: "center",
+			flexWrap: "nowrap",
+			boxShadow: "0 1px 2px rgba(15, 23, 42, 0.04)",
+		},
+	},
+	label: {
+		style: {
+			background: "#ffffff",
+			color: "#0f172a",
+			padding: "0.55rem 0.85rem",
+			flex: "1 1 auto",
+			whiteSpace: "nowrap",
+			overflow: "hidden",
+			textOverflow: "ellipsis",
+		},
+	},
+	dropdown: {
+		style: {
+			background: "#ffffff",
+			color: "#64748b",
+			marginLeft: "auto",
+			alignSelf: "stretch",
+			display: "inline-flex",
+			alignItems: "center",
+			justifyContent: "center",
+			padding: "0 0.7rem",
+			borderLeft: "1px solid #e2e8f0",
+		},
+	},
+	overlay: {
+		style: {
+			background: "#ffffff",
+			border: "1px solid #e2e8f0",
+			borderRadius: "12px",
+			boxShadow: "0 12px 32px rgba(15, 23, 42, 0.12)",
+			marginTop: "4px",
+			overflow: "hidden",
+		},
+	},
+	listContainer: { style: { background: "#ffffff" } },
+	list: { style: { background: "#ffffff", padding: "0.375rem" } },
+	option: {
+		style: {
+			background: "#ffffff",
+			color: "#334155",
+			padding: "0.55rem 0.75rem",
+			borderRadius: "8px",
+			fontSize: "0.875rem",
+			cursor: "pointer",
+			transition: "background-color 0.15s ease, color 0.15s ease",
+		},
+	},
+	header: {
+		style: {
+			background: "#f8fafc",
+			padding: "0.5rem",
+			borderBottom: "1px solid #e2e8f0",
+		},
+	},
+	pcFilter: {
+		root: {
+			style: {
+				width: "100%",
+				background: "#ffffff",
+				border: "1px solid #e2e8f0",
+				borderRadius: "8px",
+				padding: "0.45rem 0.65rem",
+				fontSize: "0.85rem",
+				color: "#334155",
+			},
+		},
+	},
+	emptyMessage: {
+		style: {
+			padding: "0.75rem",
+			color: "#94a3b8",
+			textAlign: "center",
+			fontSize: "0.8rem",
+		},
+	},
+};
+
 const modalOpen = ref(false);
 const saving = ref(false);
 const saveError = ref("");
+
+// ── Quick-create: new customer ────────────────────────────────────────────────
+const newCustomerOpen = ref(false);
+const newCustomerSaving = ref(false);
+const newCustomerError = ref("");
+const newCustomerForm = reactive({
+	customer_name: "",
+	mobile_no: "",
+	email_id: "",
+});
+
+function openNewCustomerModal() {
+	newCustomerError.value = "";
+	newCustomerForm.customer_name = "";
+	newCustomerForm.mobile_no = "";
+	newCustomerForm.email_id = "";
+	newCustomerOpen.value = true;
+}
+
+async function submitNewCustomer() {
+	const name = newCustomerForm.customer_name.trim();
+	if (!name) {
+		newCustomerError.value = "Customer name is required.";
+		return;
+	}
+	newCustomerError.value = "";
+	newCustomerSaving.value = true;
+	try {
+		const doc = {
+			customer_name: name,
+			customer_type: "Individual",
+		};
+		if (newCustomerForm.mobile_no.trim()) doc.mobile_no = newCustomerForm.mobile_no.trim();
+		if (newCustomerForm.email_id.trim()) doc.email_id = newCustomerForm.email_id.trim();
+		const created = await restInsert("Customer", doc);
+		newCustomerOpen.value = false;
+		await loadCustomersForModal();
+		await loadCustomerDirectory();
+		form.customer = created.name;
+		await onCustomerChange();
+		toast.add({
+			severity: "success",
+			summary: "Customer created",
+			detail: created.customer_name || created.name,
+			life: 2500,
+		});
+	} catch (e) {
+		newCustomerError.value = e.message || "Could not create customer";
+	} finally {
+		newCustomerSaving.value = false;
+	}
+}
+
+// ── Quick-create: new vehicle ─────────────────────────────────────────────────
+const newVehicleOpen = ref(false);
+const newVehicleSaving = ref(false);
+const newVehicleError = ref("");
+const newVehicleForm = reactive({
+	license_plate: "",
+	make: "",
+	model: "",
+	year: "",
+	color: "",
+	vin: "",
+});
+
+function openNewVehicleModal() {
+	if (!form.customer) return;
+	newVehicleError.value = "";
+	newVehicleForm.license_plate = "";
+	newVehicleForm.make = "";
+	newVehicleForm.model = "";
+	newVehicleForm.year = "";
+	newVehicleForm.color = "";
+	newVehicleForm.vin = "";
+	newVehicleOpen.value = true;
+}
+
+async function submitNewVehicle() {
+	const plate = newVehicleForm.license_plate.trim();
+	if (!plate) {
+		newVehicleError.value = "License plate is required.";
+		return;
+	}
+	if (!form.customer) {
+		newVehicleError.value = "Pick a customer first.";
+		return;
+	}
+	newVehicleError.value = "";
+	newVehicleSaving.value = true;
+	try {
+		const doc = {
+			customer: form.customer,
+			license_plate: plate,
+		};
+		if (newVehicleForm.make.trim()) doc.make = newVehicleForm.make.trim();
+		if (newVehicleForm.model.trim()) doc.model = newVehicleForm.model.trim();
+		if (newVehicleForm.year) doc.year = Number(newVehicleForm.year);
+		if (newVehicleForm.color.trim()) doc.color = newVehicleForm.color.trim();
+		if (newVehicleForm.vin.trim()) doc.vin = newVehicleForm.vin.trim();
+		const created = await restInsert("Vehicle", doc);
+		newVehicleOpen.value = false;
+		await loadVehiclesForCustomer(form.customer);
+		form.vehicle = created.name;
+		toast.add({
+			severity: "success",
+			summary: "Vehicle created",
+			detail: created.license_plate || created.name,
+			life: 2500,
+		});
+	} catch (e) {
+		newVehicleError.value = e.message || "Could not create vehicle";
+	} finally {
+		newVehicleSaving.value = false;
+	}
+}
 
 function pad2(n) {
 	return String(n).padStart(2, "0");
